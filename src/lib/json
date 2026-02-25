@@ -1,0 +1,262 @@
+[
+  {
+    "occasion": ["casual", "party"],
+    "ItemName": "Safia Mini dress",
+    "category": "Dresses",
+    "brand": "Andrea Iyamah",
+    "sizes": [
+      {
+        "size": "Small",
+        "in_stock": 1
+      }
+    ],
+    "color": "Pink",
+    "price": '447.00',
+    "owner": "Rumi Aneke",
+    "contact": "ojorumianeke@gmail.com",
+    "description": "Beautiful Safia Mini dress in pink",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["mini-dress", "pink", "party", "casual"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "Girona Ruched-Sleeve Mini Dress",
+    "category": "Dresses",
+    "brand": "Gauge 81",
+    "sizes": [
+      {
+        "size": "FRA 42 (10)",
+        "in_stock": 1
+      }
+    ],
+    "color": "Black",
+    "price": "530.00",
+    "owner": "Seun Byron",
+    "contact": "seunbyron@gmail.com",
+    "description": "Elegant Girona Ruched-Sleeve Mini Dress in black",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["mini-dress", "black", "formal", "party", "ruched"]
+  },
+  {
+    "occasion": ["casual", "work"],
+    "ItemName": "Nia Culotte jumpsuit",
+    "category": "Jumpsuits",
+    "brand": "Andrea Iyamah",
+    "sizes": [
+      {
+        "size": "Small",
+        "in_stock": 1
+      }
+    ],
+    "color": "Nude/Beige",
+    "price": "365.00",
+    "owner": "Rumi Aneke",
+    "contact": "ojorumianeke@gmail.com",
+    "description": "Stylish Nia Culotte jumpsuit in nude/beige",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["jumpsuit", "nude", "beige", "culotte", "casual"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "Arlene Dress",
+    "category": "Dresses",
+    "brand": "Rendoll",
+    "sizes": [
+      {
+        "size": "UK 16",
+        "in_stock": 1
+      }
+    ],
+    "color": "Yellow",
+    "price": 124.00,
+    "owner": "Seun Byron",
+    "contact": "seunbyron@gmail.com",
+    "description": "Vibrant Arlene Dress in yellow",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["dress", "yellow", "formal", "party"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "SSENSE Exclusive Brown LS halter dress",
+    "category": "Dresses",
+    "brand": "Helmut Lang",
+    "sizes": [
+      {
+        "size": "XS",
+        "in_stock": 1
+      }
+    ],
+    "color": "Brown",
+    "price": 370.00,
+    "owner": "Rumi Aneke",
+    "contact": "ojorumianeke@gmail.com",
+    "description": "SSENSE Exclusive Brown long sleeve halter dress",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["dress", "brown", "halter", "long-sleeve", "formal"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "Paige Dress",
+    "category": "Dresses",
+    "brand": "Anna Quan",
+    "sizes": [
+      {
+        "size": "AUS 8",
+        "in_stock": 1
+      }
+    ],
+    "color": "Black",
+    "price": 610.00,
+    "owner": "Rumi Aneke",
+    "contact": "ojorumianeke@gmail.com",
+    "description": "Elegant Paige Dress in black",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["dress", "black", "formal", "party"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "Zuhi Keyhole Dress",
+    "category": "Dresses",
+    "brand": "Kai Collective",
+    "sizes": [
+      {
+        "size": "L",
+        "in_stock": 1
+      }
+    ],
+    "color": "Black",
+    "price": 263.00,
+    "owner": "Seun Byron",
+    "contact": "seunbyron@gmail.com",
+    "description": "Stylish Zuhi Keyhole Dress in black",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["dress", "black", "keyhole", "formal", "party"]
+  },
+  {
+    "occasion": ["casual", "party"],
+    "ItemName": "Lily Dress",
+    "category": "Dresses",
+    "brand": "Nita Studio",
+    "sizes": [
+      {
+        "size": "UK 8",
+        "in_stock": 1
+      }
+    ],
+    "color": "Grey",
+    "price": 134.00,
+    "owner": "Rumi Aneke",
+    "contact": "ojorumianeke@gmail.com",
+    "description": "Chic Lily Dress in grey",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["dress", "grey", "casual", "party"]
+  },
+  {
+    "occasion": ["party", "casual"],
+    "ItemName": "V-Neck Shirred-Waist Bubble Mini Dress",
+    "category": "Dresses",
+    "brand": "La Mie",
+    "sizes": [
+      {
+        "size": "L",
+        "in_stock": 1
+      }
+    ],
+    "color": "Bright Orange",
+    "price": 247.00,
+    "owner": "Seun Byron",
+    "contact": "seunbyron@gmail.com",
+    "description": "Vibrant V-Neck Shirred-Waist Bubble Mini Dress in bright orange",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["mini-dress", "orange", "v-neck", "shirred", "party"]
+  },
+  {
+    "occasion": ["casual", "streetwear"],
+    "ItemName": "SPARKLY RIBBED-KNIT SHIRT",
+    "category": "Tops",
+    "brand": "COS",
+    "sizes": [
+      {
+        "size": "L",
+        "in_stock": 1
+      }
+    ],
+    "color": "Green",
+    "price": 125.00,
+    "owner": "Seun Byron",
+    "contact": "seunbyron@gmail.com",
+    "description": "Sparkly ribbed-knit shirt in green",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["shirt", "green", "sparkly", "ribbed", "casual"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "Wrenley Off-Shoulder Midi Dress",
+    "category": "Dresses",
+    "brand": "Solace London",
+    "sizes": [
+      {
+        "size": "US 6",
+        "in_stock": 1
+      }
+    ],
+    "color": "Black",
+    "price": 860.00,
+    "owner": "Odera Okonkwo",
+    "contact": "deraokonkwo@gmail.com",
+    "description": "Elegant Wrenley Off-Shoulder Midi Dress in black",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["midi-dress", "black", "off-shoulder", "formal", "party"]
+  },
+  {
+    "occasion": ["formal", "party"],
+    "ItemName": "Beau Pleated Dress",
+    "category": "Dresses",
+    "brand": "House of CB",
+    "sizes": [
+      {
+        "size": "L",
+        "in_stock": 1
+      }
+    ],
+    "color": "Wine/Red",
+    "price": 386.00,
+    "owner": "Odera Okonkwo",
+    "contact": "deraokonkwo@gmail.com",
+    "description": "Stunning Beau Pleated Dress in wine/red",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["dress", "wine", "red", "pleated", "formal"]
+  },
+  {
+    "occasion": ["casual", "streetwear"],
+    "ItemName": "Mei Top",
+    "category": "Tops",
+    "brand": "Kai Collective",
+    "sizes": [
+      {
+        "size": "2XL",
+        "in_stock": 1
+      }
+    ],
+    "color": "Black",
+    "price": 300.00,
+    "owner": "Seun Byron",
+    "contact": "seunbyron@gmail.com",
+    "description": "Stylish Mei Top in black",
+    "gender": "Women",
+    "availability": true,
+    "tags": ["top", "black", "casual", "streetwear"]
+  }
+]
