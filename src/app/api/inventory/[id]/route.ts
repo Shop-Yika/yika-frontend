@@ -16,29 +16,33 @@ export async function GET(
         }
 
         const { id } = params;
-        const url = `${AWS_API_URL}/inventory/${id}`;
+
+        const baseUrl = AWS_API_URL.endsWith('/') ? AWS_API_URL.slice(0, -1) : AWS_API_URL;
+        const url = `${baseUrl}/inventory/${id}`;
 
         console.log('📡 Fetching product from AWS:', url);
+        console.log('📋 Product ID:', id);
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
+            cache: 'no-store',
         });
 
-        console.log('✅ AWS Response Status:', response.status);
+        console.log('📊 AWS Response Status:', response.status);
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ AWS API Error:', response.status, errorText);
+
             if (response.status === 404) {
                 return NextResponse.json(
                     { error: 'Product not found' },
                     { status: 404 }
                 );
             }
-
-            const errorText = await response.text();
-            console.error('❌ AWS API Error:', response.status, errorText);
 
             return NextResponse.json(
                 { error: 'Failed to fetch product', details: errorText },
@@ -47,10 +51,19 @@ export async function GET(
         }
 
         const data = await response.json();
-        return NextResponse.json(data);
+        console.log('✅ Product data received from AWS');
+
+        // Return the data
+        // If AWS already wraps in {data: ...}, return as-is
+        // If AWS returns the item directly, wrap it
+        if (data.data) {
+            return NextResponse.json(data);
+        } else {
+            return NextResponse.json({ data });
+        }
 
     } catch (error) {
-        console.error('❌ Error fetching product:', error);
+        console.error('❌ Error in product API route:', error);
         return NextResponse.json(
             {
                 error: 'Internal server error',

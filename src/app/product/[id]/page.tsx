@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { InventoryItem } from '@/lib/api/types';
 import { useLikedItems } from '@/lib/hooks/useLikedItems';
 
@@ -14,7 +15,6 @@ export default function ProductPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedImage, setSelectedImage] = useState(0);
-    const [quantity, setQuantity] = useState(1);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
     const { toggleLike, isLiked } = useLikedItems();
@@ -30,45 +30,58 @@ export default function ProductPage() {
             setLoading(true);
             setError(null);
 
-            console.log('🔍 Fetching product:', productId);
+            console.log('🔍 Fetching product ID:', productId);
 
-            // Fetch from API
-            const response = await fetch(`/api/inventory/${productId}`);
+            // Fetch all products and find the one we need (fallback method)
+            const response = await fetch('/api/inventory');
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const rawData = await response.json();
-            console.log('📦 Raw product data:', rawData);
+            const items = Array.isArray(rawData) ? rawData : (rawData.data || []);
 
-            // Handle both formats
-            let item = rawData.data || rawData;
+            console.log('📦 Total products fetched:', items.length);
+            console.log('🔍 Looking for product ID:', productId);
+
+            // Find product by ID (check both ItemID and id fields)
+            const foundItem = items.find((item: any) => {
+                const itemId = item.ItemID || item.id;
+                console.log('Checking item:', itemId);
+                return itemId === productId;
+            });
+
+            if (!foundItem) {
+                console.error('❌ Product not found in inventory');
+                throw new Error('Product not found');
+            }
+
+            console.log('✅ Found product:', foundItem);
 
             // Map AWS fields to frontend fields
             const mappedProduct: InventoryItem = {
-                id: item.ItemID || item.id,
-                name: item.ItemName || item.name,
-                description: item.description || `${item.ItemName || item.name} from ${item.brand || 'our collection'}`,
-                price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
-                category: item.category || 'Uncategorized',
-                brand: item.brand || 'Unknown',
-                imageUrl: item.thumbnail || item.imageUrl || item.images?.[0] || '',
-                images: item.images || (item.thumbnail ? [item.thumbnail] : []),
-                stock: item.sizes ? item.sizes.reduce((sum: number, s: any) => sum + (s.in_stock || 0), 0) : 0,
-                gender: item.gender || 'Women',
-                occasion: Array.isArray(item.occasion) ? item.occasion[0] : item.occasion,
-                color: item.color || '',
-                sizes: item.sizes ? item.sizes.map((s: any) => s.size).filter(Boolean) : [],
-                availability: item.availability !== undefined ? item.availability : true,
-                tags: item.tags || [],
-                rating: item.rating,
-                reviews: item.reviews,
-                createdAt: item.createdAt,
-                updatedAt: item.updatedAt,
+                id: foundItem.ItemID || foundItem.id,
+                name: foundItem.ItemName || foundItem.name,
+                description: foundItem.description || `${foundItem.ItemName || foundItem.name} from ${foundItem.brand || 'our collection'}`,
+                price: typeof foundItem.price === 'number' ? foundItem.price : parseFloat(foundItem.price) || 0,
+                category: foundItem.category || 'Uncategorized',
+                brand: foundItem.brand || 'Unknown',
+                imageUrl: foundItem.thumbnail || foundItem.imageUrl || foundItem.images?.[0] || '',
+                images: foundItem.images || (foundItem.thumbnail ? [foundItem.thumbnail] : []),
+                stock: foundItem.sizes ? foundItem.sizes.reduce((sum: number, s: any) => sum + (s.in_stock || 0), 0) : 0,
+                gender: foundItem.gender || 'Women',
+                occasion: Array.isArray(foundItem.occasion) ? foundItem.occasion[0] : foundItem.occasion,
+                color: foundItem.color || '',
+                sizes: foundItem.sizes ? foundItem.sizes.map((s: any) => s.size).filter(Boolean) : [],
+                availability: foundItem.availability !== undefined ? foundItem.availability : true,
+                tags: foundItem.tags || [],
+                rating: foundItem.rating,
+                reviews: foundItem.reviews,
+                createdAt: foundItem.createdAt,
+                updatedAt: foundItem.updatedAt,
             };
 
-            console.log('✅ Mapped product:', mappedProduct);
             setProduct(mappedProduct);
 
         } catch (err) {
@@ -98,10 +111,14 @@ export default function ProductPage() {
     if (error || !product) {
         return (
             <div className="flex flex-col justify-center items-center min-h-screen">
-                <p className="text-red-600 mb-4">Error: {error || 'Product not found'}</p>
+                <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-red-600 mb-2 font-semibold">Product Not Found</p>
+                <p className="text-gray-600 text-sm mb-4">{error || 'The product you are looking for does not exist'}</p>
                 <button
-                    onClick={() => router.push('/shop')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={() => router.push('/')}
+                    className="px-6 py-2 bg-black text-white rounded hover:bg-gray-800"
                 >
                     Back to Shop
                 </button>
@@ -146,18 +163,22 @@ export default function ProductPage() {
             {/* Breadcrumb */}
             <nav className="mb-8 text-sm">
                 <button
-                    onClick={() => router.push('/shop')}
+                    onClick={() => router.push('/')}
                     className="text-blue-600 hover:underline"
                 >
                     Shop
                 </button>
-                <span className="mx-2">/</span>
-                <button
-                    onClick={() => router.push(`/shop?category=${product.category}`)}
-                    className="text-blue-600 hover:underline"
-                >
-                    {product.category}
-                </button>
+                {product.category && (
+                    <>
+                        <span className="mx-2">/</span>
+                        <button
+                            onClick={() => router.push(`/?category=${product.category}`)}
+                            className="text-blue-600 hover:underline"
+                        >
+                            {product.category}
+                        </button>
+                    </>
+                )}
                 <span className="mx-2">/</span>
                 <span className="text-gray-600">{product.name}</span>
             </nav>
@@ -168,13 +189,15 @@ export default function ProductPage() {
                     {/* Main Image */}
                     <div className="relative mb-4 bg-gray-200 rounded-lg overflow-hidden aspect-[3/4]">
                         {images.length > 0 && images[selectedImage] ? (
-                            <img
+                            <Image
                                 src={images[selectedImage]}
                                 alt={product.name}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                priority
                                 onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
+                                    console.error('Image failed to load');
                                 }}
                             />
                         ) : (
@@ -191,7 +214,7 @@ export default function ProductPage() {
                             <>
                                 <button
                                     onClick={() => setSelectedImage(prev => prev === 0 ? images.length - 1 : prev - 1)}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100"
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 z-10"
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -199,7 +222,7 @@ export default function ProductPage() {
                                 </button>
                                 <button
                                     onClick={() => setSelectedImage(prev => prev === images.length - 1 ? 0 : prev + 1)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 z-10"
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -216,14 +239,16 @@ export default function ProductPage() {
                                 <button
                                     key={index}
                                     onClick={() => setSelectedImage(index)}
-                                    className={`aspect-square rounded overflow-hidden border-2 ${
+                                    className={`relative aspect-square rounded overflow-hidden border-2 ${
                                         selectedImage === index ? 'border-black' : 'border-gray-200'
                                     }`}
                                 >
-                                    <img
+                                    <Image
                                         src={image}
                                         alt={`${product.name} ${index + 1}`}
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
+                                        sizes="100px"
                                     />
                                 </button>
                             ))}
@@ -233,16 +258,14 @@ export default function ProductPage() {
 
                 {/* Right: Product Details */}
                 <div>
-                    {/* Seller Info */}
-                    <div className="mb-4">
-                        <p className="text-sm text-gray-600">
-                            From <span className="underline">{product.brand || "Seller's closet"}</span>
-                        </p>
-                    </div>
-
                     {/* Product Name and Like */}
                     <div className="flex items-start justify-between mb-4">
-                        <h1 className="text-3xl font-normal">{product.name}</h1>
+                        <div>
+                            <p className="text-sm text-gray-600 mb-2">
+                                From <span className="underline">{product.brand}</span>
+                            </p>
+                            <h1 className="text-3xl font-normal">{product.name}</h1>
+                        </div>
                         <button
                             onClick={() => toggleLike(product.id)}
                             className="p-2"
@@ -277,7 +300,8 @@ export default function ProductPage() {
                                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
-                                Available for rent ({product.stock} in stock)
+                                Available for rent
+                                {product.stock > 0 && ` (${product.stock} in stock)`}
                             </p>
                         ) : (
                             <p className="text-red-600 font-medium flex items-center">
@@ -290,10 +314,12 @@ export default function ProductPage() {
                     </div>
 
                     {/* Description */}
-                    <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-2">Description</h2>
-                        <p className="text-gray-700">{product.description}</p>
-                    </div>
+                    {product.description && (
+                        <div className="mb-6">
+                            <h2 className="text-xl font-semibold mb-2">Description</h2>
+                            <p className="text-gray-700">{product.description}</p>
+                        </div>
+                    )}
 
                     {/* Product Details */}
                     <div className="mb-6 border-t pt-6">
@@ -329,25 +355,9 @@ export default function ProductPage() {
                                 {product.sizes.map((size) => (
                                     <span
                                         key={size}
-                                        className="px-4 py-2 border border-gray-300 rounded text-sm"
+                                        className="px-4 py-2 border border-gray-300 rounded text-sm hover:border-black transition-colors"
                                     >
                     {size}
-                  </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Tags */}
-                    {product.tags && product.tags.length > 0 && (
-                        <div className="mb-6">
-                            <div className="flex flex-wrap gap-2">
-                                {product.tags.map((tag, index) => (
-                                    <span
-                                        key={index}
-                                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                                    >
-                    {tag}
                   </span>
                                 ))}
                             </div>
@@ -359,7 +369,7 @@ export default function ProductPage() {
                         <button
                             onClick={handleAddToCart}
                             disabled={!product.availability || product.stock === 0}
-                            className="flex-1 px-6 py-3 border-2 border-black text-black rounded-lg hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+                            className="flex-1 px-6 py-3 border-2 border-black text-black rounded-lg hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-400 font-medium transition-colors"
                         >
                             Add to Bag
                         </button>
