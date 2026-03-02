@@ -21,7 +21,10 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
     const [loading, setLoading] = useState(!initialProducts);
     const [error, setError] = useState<string | null>(null);
 
-    const [filters, setFilters] = useState<FilterOptions>({});
+    // Separate pending and applied filters
+    const [pendingFilters, setPendingFilters] = useState<FilterOptions>({});
+    const [appliedFilters, setAppliedFilters] = useState<FilterOptions>({});
+
     const { toggleLike, isLiked } = useLikedItems();
 
     // Fetch products if not provided
@@ -31,20 +34,20 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
         }
     }, [initialProducts]);
 
-    // Apply filters whenever products or filters change
+    // Apply filters only when appliedFilters change (when button is clicked)
     useEffect(() => {
         if (products && products.length > 0) {
             console.log('🔍 Applying filters to', products.length, 'products');
-            console.log('🔍 Active filters:', filters);
+            console.log('🔍 Applied filters:', appliedFilters);
 
-            const filtered = applyFiltersAndSort(products, filters);
+            const filtered = applyFiltersAndSort(products, appliedFilters);
 
             console.log('✅ Filtered result:', filtered.length, 'products');
             setFilteredProducts(filtered);
         } else {
             setFilteredProducts([]);
         }
-    }, [products, filters]);
+    }, [products, appliedFilters]);
 
     const fetchProducts = async () => {
         try {
@@ -53,7 +56,6 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
 
             console.log('🔄 Fetching products from API...');
 
-            // Fetch raw data from API
             const response = await fetch('/api/inventory');
 
             if (!response.ok) {
@@ -61,9 +63,6 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
             }
 
             const rawData = await response.json();
-            console.log('📦 Raw API response:', rawData);
-
-            // Handle both formats: direct array or {data: [...]}
             let items: any[] = [];
 
             if (Array.isArray(rawData)) {
@@ -71,33 +70,24 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
             } else if (rawData.data && Array.isArray(rawData.data)) {
                 items = rawData.data;
             } else {
-                console.error('❌ Unexpected response format');
                 throw new Error('Unexpected API response format');
             }
 
-            console.log('📊 Received', items.length, 'items from API');
-
-            // 🔥 MAP AWS FIELDS TO FRONTEND FIELDS
-            const mappedProducts: InventoryItem[] = items.map((item, index) => {
-                console.log(`Mapping item ${index + 1}:`, item);
-
-                // Calculate total stock from sizes array
+            // Map AWS fields to frontend fields
+            const mappedProducts: InventoryItem[] = items.map((item) => {
                 const totalStock = item.sizes && Array.isArray(item.sizes)
                     ? item.sizes.reduce((sum: number, s: any) => sum + (s.in_stock || 0), 0)
                     : 0;
 
-                // Extract size strings
                 const sizeStrings = item.sizes && Array.isArray(item.sizes)
                     ? item.sizes.map((s: any) => s.size).filter(Boolean)
                     : [];
 
-                // Handle occasion (could be string or array)
                 const occasion = Array.isArray(item.occasion)
                     ? item.occasion[0]
                     : item.occasion;
 
                 return {
-                    // 🔥 FIELD MAPPING (AWS → Frontend)
                     id: item.ItemID || item.id,
                     name: item.ItemName || item.name,
                     description: item.description || `${item.ItemName || item.name} from ${item.brand || 'our collection'}`,
@@ -120,11 +110,9 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
                 };
             });
 
-            console.log('✅ Mapped products sample:', mappedProducts[0]);
             console.log('✅ Total mapped products:', mappedProducts.length);
-
             setProducts(mappedProducts);
-            setFilteredProducts(mappedProducts); // Show all by default
+            setFilteredProducts(mappedProducts);
 
         } catch (err) {
             console.error('❌ Error fetching products:', err);
@@ -136,14 +124,16 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
         }
     };
 
+    // Update pending filters (doesn't apply yet)
     const handleFilterChange = (newFilters: Partial<FilterOptions>) => {
-        console.log('🔧 Filter changed:', newFilters);
-        setFilters(prev => ({ ...prev, ...newFilters }));
+        console.log('🔧 Filter changed (pending):', newFilters);
+        setPendingFilters(prev => ({ ...prev, ...newFilters }));
     };
 
+    // Apply filters when "Show Results" button is clicked
     const handleApplyFilters = () => {
-        console.log('✅ Apply filters button clicked');
-        // Filters already applied via useEffect
+        console.log('✅ Applying pending filters:', pendingFilters);
+        setAppliedFilters(pendingFilters);
     };
 
     const handleProductClick = (productId: string) => {
@@ -178,7 +168,7 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
             {/* Filter Sidebar - hidden on mobile, visible on lg */}
             <div className="hidden lg:block w-full max-w-[363.84px] border-r border-black/30 bg-white z-10 px-4 pt-6 lg:px-0 lg:pt-0 sticky top-[76px] h-screen overflow-none">
                 <FilterSidebar
-                    filters={filters}
+                    filters={pendingFilters}
                     onFilterChange={handleFilterChange}
                     onApplyFilters={handleApplyFilters}
                     allProducts={products}
@@ -186,8 +176,11 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative ">
                 <ShopHeroBanner />
+
+                {/*padding and alignment*/}
+                <div className="px-4 sm:px-6 lg:px-12 py-6">
 
                 <div className="w-full max-w-[1200px] px-4 md:px-10 mx-auto mb-10">
                     {/* Section Header */}
@@ -208,6 +201,8 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
                         isLiked={isLiked}
                     />
                 </div>
+                </div>
+
             </div>
         </section>
     );

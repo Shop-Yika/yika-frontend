@@ -30,10 +30,10 @@ export default function ProductCard({
     return (
         <div
             onClick={handleClick}
-            className={`product-card group ${isPlaceholder ? 'cursor-default opacity-75' : 'cursor-pointer'}`}
+            className={`relative w-full h-87.5 sm:h-100 md:h-121.5 mx-auto ${isPlaceholder ? 'cursor-default opacity-75' : 'cursor-pointer'}`}
         >
             {/* Product Image */}
-            <div className="relative aspect-[3/4] bg-gray-200 overflow-hidden mb-3 rounded-lg">
+            <div className="absolute top-0 left-0 w-full h-62.5 sm:h-75 md:h-96 bg-[#CBD9FF] border border-black/30 overflow-hidden">
                 {hasValidImage ? (
                     <Image
                         src={product.imageUrl}
@@ -70,33 +70,32 @@ export default function ProductCard({
                             e.stopPropagation();
                             onLikeClick(product.id);
                         }}
-                        className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center bg-white rounded-full shadow-lg hover:scale-110 transition-transform duration-200 z-10"
+                        className="absolute top-0 right-0 w-[40px] sm:w-[53px] h-[40px] sm:h-[53px] flex items-center justify-center"
                         aria-label={isLiked ? 'Unlike' : 'Like'}
                         title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
                     >
-                        <svg
-                            className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'fill-none text-gray-700'}`}
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                            />
-                        </svg>
+                        <Image
+                            src={
+                                isLiked
+                                    ? "/assets/icons/Heart-Icon-Fill.svg"
+                                    : "/assets/icons/Heart-Icon-Outline.svg"
+                            }
+                            alt="Heart Icon"
+                            width={26}
+                            height={23}
+                        />
+
                     </button>
                 )}
 
                 {/* Status Badges */}
                 <div className="absolute bottom-3 left-3 flex gap-2 z-10">
                     {isPlaceholder ? (
-                        <div className="bg-yellow-500 text-white px-3 py-1 text-xs font-semibold uppercase">
+                        <div className="bg-yellow-500 px-3 py-1 text-xs font-semibold uppercase">
                             Coming Soon
                         </div>
                     ) : !product.availability && (
-                        <div className="bg-red-600 text-white px-3 py-1 text-xs font-semibold">
+                        <div className="bg-red-600  px-3 py-1 text-xs font-semibold">
                             Unavailable
                         </div>
                     )}
@@ -111,24 +110,17 @@ export default function ProductCard({
 
             {/* Product Info */}
             <div>
-                <h3 className="text-sm font-normal mb-1 line-clamp-2 min-h-[2.5rem]">
+                <h3 className="absolute top-65 sm:top-77.5 md:top-101 left-0 mb-0 w-full text-[14px] sm:text-[16.6px] font-['Satoshi'] font-medium leading-5 sm:leading-5.5 tracking-[-0.01em] text-black">
                     {product.name}
                 </h3>
 
                 {!isPlaceholder && (
-                    <div className="flex items-baseline justify-between">
-                        <p className="text-sm font-medium text-gray-900">
+                    <div className="flex">
+                        <p className="absolute top-[290px] sm:top-[340px] md:top-[433px] left-0 mt-4 text-[14px] sm:text-[16.6px] font-['Inter'] leading-[18px] sm:leading-[20px] tracking-[-0.01em] text-black">
                             CAD$ {product.price.toFixed(2)}
                         </p>
 
-                        {product.rating && (
-                            <div className="flex items-center text-xs text-gray-600">
-                                <svg className="w-3 h-3 text-yellow-400 fill-current mr-1" viewBox="0 0 20 20">
-                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                </svg>
-                                {product.rating.toFixed(1)}
-                            </div>
-                        )}
+
                     </div>
                 )}
 
