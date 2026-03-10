@@ -5,6 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { InventoryItem } from '@/lib/api/types';
 import { useLikedItems } from '@/lib/hooks/useLikedItems';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, addDays, differenceInDays } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 export default function ProductPage() {
     const params = useParams();
@@ -17,6 +21,12 @@ export default function ProductPage() {
     const [selectedImage, setSelectedImage] = useState(0);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+    // Rental date states
+    const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+    const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+    const [rentalDays, setRentalDays] = useState(0);
+    const [totalPrice, setTotalPrice] = useState(0);
+
     const { toggleLike, isLiked } = useLikedItems();
 
     useEffect(() => {
@@ -24,6 +34,18 @@ export default function ProductPage() {
             fetchProduct();
         }
     }, [productId]);
+
+    // Calculate rental days and total price when dates change
+    useEffect(() => {
+        if (startDate && endDate && product) {
+            const days = differenceInDays(endDate, startDate) + 1; // Include both start and end day
+            setRentalDays(days);
+            setTotalPrice(product.price * days);
+        } else {
+            setRentalDays(0);
+            setTotalPrice(0);
+        }
+    }, [startDate, endDate, product]);
 
     const fetchProduct = async () => {
         try {
@@ -93,10 +115,18 @@ export default function ProductPage() {
     };
 
     const handleAddToCart = () => {
+        if (!startDate || !endDate) {
+            alert('Please select rental dates first');
+            return;
+        }
         setShowLoginPrompt(true);
     };
 
     const handleRentNow = () => {
+        if (!startDate || !endDate) {
+            alert('Please select rental dates first');
+            return;
+        }
         setShowLoginPrompt(true);
     };
 
@@ -133,7 +163,7 @@ export default function ProductPage() {
             : [];
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8 ">
             {/* Login Prompt Modal */}
             {showLoginPrompt && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -168,17 +198,6 @@ export default function ProductPage() {
                 >
                     Shop
                 </button>
-                {product.category && (
-                    <>
-                        <span className="mx-2">/</span>
-                        <button
-                            onClick={() => router.push(`/?category=${product.category}`)}
-                            className="text-blue-600 hover:underline"
-                        >
-                            {product.category}
-                        </button>
-                    </>
-                )}
                 <span className="mx-2">/</span>
                 <span className="text-gray-600">{product.name}</span>
             </nav>
@@ -288,12 +307,13 @@ export default function ProductPage() {
 
                     {/* Price */}
                     <div className="mb-6">
-                        <p className="text-xl">
-                            from <span className="font-semibold">CAD$ {product.price.toFixed(2)}</span>/rental
+                        <p className="text-sm">
+                            from <span className="text-lg font-semibold">CAD$ {product.price.toFixed(2)}</span><span className='text-gray-600'>/day</span>
                         </p>
                     </div>
 
                     {/* Availability */}
+                    {/*
                     <div className="mb-6">
                         {product.availability && product.stock > 0 ? (
                             <p className="text-green-600 font-medium flex items-center">
@@ -313,36 +333,42 @@ export default function ProductPage() {
                         )}
                     </div>
 
+                    */}
+
                     {/* Description */}
                     {product.description && (
                         <div className="mb-6">
-                            <h2 className="text-xl font-semibold mb-2">Description</h2>
+                            <h2 className="text-lg font-semibold mb-2">Description</h2>
                             <p className="text-gray-700">{product.description}</p>
                         </div>
                     )}
 
                     {/* Product Details */}
                     <div className="mb-6 border-t pt-6">
-                        <h3 className="font-semibold mb-3">Product Details</h3>
-                        <dl className="grid grid-cols-2 gap-3 text-sm">
-                            <dt className="text-gray-600">Brand:</dt>
-                            <dd className="font-medium">{product.brand}</dd>
+                        <h3 className="font-semibold italic mb-3">SELLERS NOTES</h3>
+                        <dl className="flex flex-col gap-1 text-sm">
+                            <div className="flex gap-4">
+                                <dt className="text-gray-600">Brand:</dt>
+                                <dd className="font-medium">{product.brand}</dd>
+                            </div>
 
-                            <dt className="text-gray-600">Category:</dt>
-                            <dd className="font-medium">{product.category}</dd>
+                            <div className="flex gap-4">
+                                <dt className="text-gray-600">Category:</dt>
+                                <dd className="font-medium">{product.category}</dd>
+                            </div>
 
                             {product.color && (
-                                <>
+                                <div className="flex gap-4">
                                     <dt className="text-gray-600">Color:</dt>
                                     <dd className="font-medium">{product.color}</dd>
-                                </>
+                                </div>
                             )}
 
                             {product.occasion && (
-                                <>
+                                <div className="flex gap-4">
                                     <dt className="text-gray-600">Occasion:</dt>
                                     <dd className="font-medium capitalize">{product.occasion}</dd>
-                                </>
+                                </div>
                             )}
                         </dl>
                     </div>
@@ -357,19 +383,109 @@ export default function ProductPage() {
                                         key={size}
                                         className="px-4 py-2 border border-gray-300 rounded text-sm hover:border-black transition-colors"
                                     >
-                    {size}
-                  </span>
+                                        {size}
+                                    </span>
                                 ))}
                             </div>
                         </div>
                     )}
 
+                    {/* Date Picker Section */}
+                    <div className="mb-6 border-t pt-6">
+                        <h3 className="font-semibold mb-4">Select Rental Dates</h3>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            {/* Start Date */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Start Date
+                                </label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors bg-white">
+                                            {startDate ? (
+                                                <span className="text-gray-900 text-sm">
+                                                    {format(startDate, 'PPP')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-500 text-sm">Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="w-4 h-4 text-gray-500" />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={startDate}
+                                            onSelect={setStartDate}
+                                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+
+                            {/* End Date */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    End Date
+                                </label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button
+                                            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!startDate}
+                                        >
+                                            {endDate ? (
+                                                <span className="text-gray-900 text-sm">
+                                                    {format(endDate, 'PPP')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-500 text-sm">Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="w-4 h-4 text-gray-500" />
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={endDate}
+                                            onSelect={setEndDate}
+                                            disabled={(date) => !startDate || date < startDate}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </div>
+
+                        {/* Rental Summary */}
+                        {startDate && endDate && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm text-gray-700">Rental Period:</span>
+                                    <span className="font-semibold">{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                                    <span>Daily Rate:</span>
+                                    <span>CAD$ {product.price.toFixed(2)}</span>
+                                </div>
+                                <div className="border-t border-blue-300 pt-2 mt-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="font-semibold text-gray-900">Total Price:</span>
+                                        <span className="text-xl font-bold text-blue-600">CAD$ {totalPrice.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Action Buttons */}
-                    <div className="flex gap-4 mb-4">
+                    <div className="flex flex-col gap-4 mb-4">
                         <button
                             onClick={handleAddToCart}
                             disabled={!product.availability || product.stock === 0}
-                            className="flex-1 px-6 py-3 border-2 border-black text-black rounded-lg hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-400 font-medium transition-colors"
+                            className="flex-1 px-6 py-3 border border-black text-black rounded-lg hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-400 font-medium transition-colors"
                         >
                             Add to Bag
                         </button>
