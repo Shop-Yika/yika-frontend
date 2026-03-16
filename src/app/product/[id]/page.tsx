@@ -206,7 +206,7 @@ export default function ProductPage() {
                 {/* Left: Product Images */}
                 <div>
                     {/* Main Image */}
-                    <div className="relative mb-4 bg-gray-200 rounded-lg overflow-hidden aspect-[3/4]">
+                    <div className="relative mb-4 bg-gray-200 overflow-hidden aspect-[3/4]">
                         {images.length > 0 && images[selectedImage] ? (
                             <Image
                                 src={images[selectedImage]}
@@ -381,7 +381,7 @@ export default function ProductPage() {
                                 {product.sizes.map((size) => (
                                     <span
                                         key={size}
-                                        className="px-4 py-2 border border-gray-300 rounded text-sm hover:border-black transition-colors"
+                                        className="px-4 py-2 border border-gray-300 text-sm hover:border-black transition-colors"
                                     >
                                         {size}
                                     </span>
@@ -402,7 +402,7 @@ export default function ProductPage() {
                                 </label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors bg-white">
+                                        <button className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 hover:border-gray-400 transition-colors bg-white">
                                             {startDate ? (
                                                 <span className="text-gray-900 text-sm">
                                                     {format(startDate, 'PPP')}
@@ -433,7 +433,7 @@ export default function ProductPage() {
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <button
-                                            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 hover:border-gray-400 transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                                             disabled={!startDate}
                                         >
                                             {endDate ? (
@@ -461,7 +461,7 @@ export default function ProductPage() {
 
                         {/* Rental Summary */}
                         {startDate && endDate && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="bg-blue-50 border border-blue-200 p-4">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-sm text-gray-700">Rental Period:</span>
                                     <span className="font-semibold">{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
@@ -485,14 +485,14 @@ export default function ProductPage() {
                         <button
                             onClick={handleAddToCart}
                             disabled={!product.availability || product.stock === 0}
-                            className="flex-1 px-6 py-3 border border-black text-black rounded-lg hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-400 font-medium transition-colors"
+                            className="flex-1 px-6 py-3 border border-black text-black hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-400 font-medium transition-colors"
                         >
                             Add to Bag
                         </button>
                         <button
                             onClick={handleRentNow}
                             disabled={!product.availability || product.stock === 0}
-                            className="flex-1 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+                            className="flex-1 px-6 py-3 bg-black text-white hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
                         >
                             Rent Now
                         </button>
