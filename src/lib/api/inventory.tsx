@@ -9,8 +9,7 @@ class ApiClient {
             return '/api';
         }
 
-        // Server-side: Use absolute URL for server-side rendering
-        // This handles cases where Next.js server needs to call its own API
+        // This handles cases where the Next.js server needs to call its own API
         return process.env.NEXT_PUBLIC_SITE_URL
             ? `${process.env.NEXT_PUBLIC_SITE_URL}/api`
             : 'http://localhost:3000/api';
