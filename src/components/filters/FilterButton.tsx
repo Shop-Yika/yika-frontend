@@ -15,7 +15,7 @@ export default function FilterButton({ showSidebar, setShowSidebar }: FilterButt
         className={`
           w-full
           h-[46px]
-          bg-white
+          bg-[#8c2d8b]
           border border-black/30
           flex items-center justify-center
           px-[20.5px] py-[15.4px] gap-[41px]
