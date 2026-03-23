@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono , Averia_Serif_Libre, Inter } from "next/font/google";
+import { Geist, Geist_Mono , Averia_Serif_Libre, Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 
 //footer and navbar import
@@ -15,6 +15,11 @@ const averiaSerif = Averia_Serif_Libre({
     weight: ["300", "400", "700"],
 });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const newsreader = Newsreader({
+    variable: "--font-newsreader",
+    subsets: ["latin"],
+    weight: ["200", "300", "400", "500", "600", "700", "800"],
+});
 
 export const metadata: Metadata = {
   title: "Yíká Inc",
@@ -23,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${averiaSerif.variable} ${inter.variable}`}>
+        <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${averiaSerif.variable} ${inter.variable} ${newsreader.variable}`}>
         <head>
             <link
                 href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap"

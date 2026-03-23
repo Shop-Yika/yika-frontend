@@ -3,17 +3,20 @@ import Image from "next/image";
 
 export default function ShopHeroBanner() {
   return (
-    <section className="relative w-full bg-[#FFFDF7] z-10 mb-4 flex flex-col items-center justify-center px-4 lg:px-0 h-[550px] md:h-[343.72px] py-10 lg:py-0">
+    <section className="relative w-full bg-[#2C371D] z-10 mb-4 flex flex-col items-center justify-center px-4 lg:px-0 h-[550px] md:h-[343.72px] py-10 lg:py-0">
       {/* Background Image */}
+
       <div className="absolute top-0 left-0 w-full h-[550px] md:h-[343.72px] z-0">
         <Image
-          src="/assets/images/Shop-Hero.svg"
+          src="/assets/logos/Logo-Mark.svg"
           alt="Background"
           width={1920}
           height={343}
           className="w-full h-full object-cover"
         />
       </div>
+
+
 
       {/* Text Block */}
       <div className="relative z-20 flex flex-col items-center text-center max-w-[90%] lg:max-w-[707.62px]">
