@@ -100,7 +100,7 @@ export default function ProductCard({
                         </div>
                     )}
 
-                    {!isPlaceholder && product.stock === 0 && (
+                    {!isPlaceholder && Number(product.stock) === 0 && (
                         <div className="bg-gray-800 text-white px-3 py-1 text-xs font-semibold">
                             Out of Stock
                         </div>

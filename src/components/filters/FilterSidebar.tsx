@@ -334,7 +334,7 @@ export default function FilterSidebar({
             {/* Fixed Bottom Section - Show Results Button */}
             <div className="flex-shrink-0 px-[33.7473px] pb-[61.49px] pt-4 bg-white border-t border-black/10">
                 <div
-                    className="w-full h-[46.12px]  flex items-center justify-center cursor-pointer  mt-2 bg-[#8C2D8B] hover:bg-[#8C2D8B]/10 text-white hover:text-[#0e0e0e] hover:border hover:border-[#8c2d8b] text-sm font-semibold py-3.5 transition-all duration-200 hover:shadow-[#8c2d8b]"
+                    className="w-full h-[46.12px]  flex items-center justify-center cursor-pointer  mt-2 bg-black text-white hover:bg-gray-800 text-sm font-semibold py-3.5 transition-all duration-200 hover:shadow-[#8c2d8b]"
                     onClick={onApplyFilters}
                 >
                     <p className="text-[17.93px] uppercase font-['Satoshi'] font-bold text-[#FFFDF7]">

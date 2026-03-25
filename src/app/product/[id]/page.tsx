@@ -162,6 +162,7 @@ export default function ProductPage() {
             ? [product.imageUrl]
             : [];
 
+    // @ts-ignore
     return (
         <div className="max-w-7xl mx-auto px-4 py-8 ">
             {/* Login Prompt Modal */}
@@ -405,8 +406,8 @@ export default function ProductPage() {
                                         <button className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 hover:border-gray-400 transition-colors bg-white">
                                             {startDate ? (
                                                 <span className="text-gray-900 text-sm">
-                                                    {format(startDate, 'PPP')}
-                                                </span>
+                        {format(startDate, 'PPP')}
+                    </span>
                                             ) : (
                                                 <span className="text-gray-500 text-sm">Pick a date</span>
                                             )}
@@ -417,7 +418,10 @@ export default function ProductPage() {
                                         <Calendar
                                             mode="single"
                                             selected={startDate}
-                                            onSelect={setStartDate}
+                                            onSelect={(date) => {
+                                                setStartDate(date);
+                                                setEndDate(undefined); // Reset end date when start changes
+                                            }}
                                             disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                             initialFocus
                                         />
@@ -428,7 +432,7 @@ export default function ProductPage() {
                             {/* End Date */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    End Date
+                                    End Date <span className="text-xs text-gray-400 font-normal">(4-day minimum)</span>
                                 </label>
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -438,8 +442,8 @@ export default function ProductPage() {
                                         >
                                             {endDate ? (
                                                 <span className="text-gray-900 text-sm">
-                                                    {format(endDate, 'PPP')}
-                                                </span>
+                        {format(endDate, 'PPP')}
+                    </span>
                                             ) : (
                                                 <span className="text-gray-500 text-sm">Pick a date</span>
                                             )}
@@ -451,7 +455,12 @@ export default function ProductPage() {
                                             mode="single"
                                             selected={endDate}
                                             onSelect={setEndDate}
-                                            disabled={(date) => !startDate || date < startDate}
+                                            disabled={(date) => {
+                                                if (!startDate) return true;
+                                                const minEndDate = new Date(startDate);
+                                                minEndDate.setDate(minEndDate.getDate() + 3); // +3 = 4-day minimum
+                                                return date < minEndDate;
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -461,7 +470,7 @@ export default function ProductPage() {
 
                         {/* Rental Summary */}
                         {startDate && endDate && (
-                            <div className="bg-blue-50 border border-blue-200 p-4">
+                            <div className="bg-[#8C2D8B]/10 border border-[#8c2d8b] p-4">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-sm text-gray-700">Rental Period:</span>
                                     <span className="font-semibold">{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
@@ -470,7 +479,7 @@ export default function ProductPage() {
                                     <span>Daily Rate:</span>
                                     <span>CAD$ {product.price.toFixed(2)}</span>
                                 </div>
-                                <div className="border-t border-blue-300 pt-2 mt-2">
+                                <div className="border-t border-[#8c2d8b] pt-2 mt-2">
                                     <div className="flex justify-between items-center">
                                         <span className="font-semibold text-gray-900">Total Price:</span>
                                         <span className="text-xl font-bold text-blue-600">CAD$ {totalPrice.toFixed(2)}</span>
@@ -484,14 +493,14 @@ export default function ProductPage() {
                     <div className="flex flex-col gap-4 mb-4">
                         <button
                             onClick={handleAddToCart}
-                            disabled={!product.availability || product.stock === 0}
+                            disabled={!product.availability || Number(product.stock) === 0}
                             className="flex-1 px-6 py-3 border border-black text-black hover:bg-black hover:text-white disabled:border-gray-300 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-400 font-medium transition-colors"
                         >
                             Add to Bag
                         </button>
                         <button
                             onClick={handleRentNow}
-                            disabled={!product.availability || product.stock === 0}
+                            disabled={!product.availability || Number(product.stock) === 0}
                             className="flex-1 px-6 py-3 bg-black text-white hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
                         >
                             Rent Now

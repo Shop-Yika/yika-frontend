@@ -4,7 +4,7 @@ const AWS_API_URL = process.env.API_URL;
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         if (!AWS_API_URL) {
@@ -15,7 +15,7 @@ export async function GET(
             );
         }
 
-        const { id } = params;
+        const { id } = await params;
 
         const baseUrl = AWS_API_URL.endsWith('/') ? AWS_API_URL.slice(0, -1) : AWS_API_URL;
         const url = `${baseUrl}/inventory/${id}`;
@@ -53,9 +53,6 @@ export async function GET(
         const data = await response.json();
         console.log('✅ Product data received from AWS');
 
-        // Return the data
-        // If AWS already wraps in {data: ...}, return as-is
-        // If AWS returns the item directly, wrap it
         if (data.data) {
             return NextResponse.json(data);
         } else {

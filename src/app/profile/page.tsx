@@ -10,12 +10,7 @@ export default function ProfilePage() {
                     </svg>
                     <h2 className="text-2xl font-semibold text-gray-700 mb-2">Sign in to view your profile</h2>
                     <p className="text-gray-500 mb-6">Create an account or sign in to manage your rentals and preferences.</p>
-                    <button
-                        onClick={() => alert('Login page coming soon!')}
-                        className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800"
-                    >
-                        Sign In
-                    </button>
+
                 </div>
             </div>
         </div>

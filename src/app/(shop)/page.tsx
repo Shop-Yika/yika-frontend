@@ -1,4 +1,5 @@
 import { getInventory } from "@/lib/api/inventory";
+export const dynamic = 'force-dynamic';
 
 // This is the main page for the shop section of the app. It will display the shop experience heading and the shop section.
 
