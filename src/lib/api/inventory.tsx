@@ -4,15 +4,21 @@ import { InventoryItem, ApiResponse, PaginatedResponse, FilterOptions } from './
 class ApiClient {
     // Always use relative paths to Next.js API routes
     private getBaseUrl(): string {
-        // Client-side: Use relative path
         if (typeof window !== 'undefined') {
             return '/api';
         }
 
-        // This handles cases where the Next.js server needs to call its own API
-        return process.env.NEXT_PUBLIC_SITE_URL
-            ? `${process.env.NEXT_PUBLIC_SITE_URL}/api`
-            : 'http://localhost:3000/api';
+        // NEXT_PUBLIC_SITE_URL takes priority (manually set)
+        if (process.env.NEXT_PUBLIC_SITE_URL) {
+            return `${process.env.NEXT_PUBLIC_SITE_URL}/api`;
+        }
+
+        // VERCEL_URL is automatically set by Vercel (no https:// prefix)
+        if (process.env.VERCEL_URL) {
+            return `https://${process.env.VERCEL_URL}/api`;
+        }
+
+        return 'http://localhost:3000/api';
     }
 
     private async request<T>(
