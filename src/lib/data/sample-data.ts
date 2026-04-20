@@ -1,0 +1,124 @@
+import type { ListingItem, OrderItem } from '@/components/dashboard/ListingCards';
+
+export const SAMPLE_LISTINGS: ListingItem[] = [
+    {
+        id: '1',
+        name: 'Silk Midi Dress',
+        category: 'Dresses',
+        brand: 'Reformation',
+        price: 99,
+        durationDays: 7,
+        imageUrl: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200&q=80',
+        status: 'live',
+    },
+    {
+        id: '2',
+        name: 'Oversized Wool Blazer',
+        category: 'Dresses',
+        brand: 'Ganni',
+        price: 174,
+        durationDays: 14,
+        imageUrl: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=200&q=80',
+        status: 'live',
+    },
+    {
+        id: '3',
+        name: 'Leather Mini Skirt',
+        category: 'Bottoms',
+        brand: 'Zara',
+        price: 35,
+        durationDays: 7,
+        imageUrl: 'https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=200&q=80',
+        status: 'live',
+    },
+    {
+        id: '4',
+        name: 'Cashmere Crew Sweater',
+        category: 'Tops',
+        brand: 'Sezane',
+        price: 90,
+        durationDays: 14,
+        imageUrl: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=200&q=80',
+        status: 'pending',
+    },
+    {
+        id: '5',
+        name: 'Floral Maxi Dress',
+        category: 'Dresses',
+        brand: 'H&M',
+        price: 28,
+        durationDays: 7,
+        imageUrl: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=200&q=80',
+        status: 'ended',
+    },
+    {
+        id: '6',
+        name: 'Cropped Denim Jacket',
+        category: 'Outerwear',
+        brand: 'Zara',
+        price: 30,
+        durationDays: 14,
+        imageUrl: 'https://images.unsplash.com/photo-1601333144130-8cbb312386b6?w=200&q=80',
+        status: 'ended',
+    },
+];
+
+export const SAMPLE_PAST_LISTINGS: ListingItem[] = SAMPLE_LISTINGS.filter(
+    (l) => l.status === 'ended'
+);
+
+export const SAMPLE_ORDERS: OrderItem[] = [
+    {
+        id: 'o1',
+        orderNumber: 'YK-2026-001',
+        itemCount: 2,
+        renterName: 'Maya Chen',
+        total: 55,
+        dueDate: 'Mar 10, 2026',
+        status: 'live',
+        imageUrls: [
+            'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200&q=80',
+            'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=200&q=80',
+        ],
+        href: '#',
+    },
+    {
+        id: 'o2',
+        orderNumber: 'YK-2026-002',
+        itemCount: 1,
+        renterName: 'Sophia Rodriguez',
+        total: 110,
+        dueDate: 'Mar 10, 2026',
+        status: 'pending',
+        imageUrls: [
+            'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=200&q=80',
+        ],
+        href: '#',
+    },
+    {
+        id: 'o3',
+        orderNumber: 'YK-2026-004',
+        itemCount: 1,
+        renterName: 'Addie Johnson',
+        total: 120,
+        dueDate: 'Mar 10, 2026',
+        status: 'rented',
+        imageUrls: [
+            'https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=200&q=80',
+        ],
+        href: '#',
+    },
+    {
+        id: 'o4',
+        orderNumber: 'YK-2026-005',
+        itemCount: 1,
+        renterName: 'Maryanne Zaheer',
+        total: 55,
+        dueDate: 'Mar 10, 2026',
+        status: 'returned',
+        imageUrls: [
+            'https://images.unsplash.com/photo-1601333144130-8cbb312386b6?w=200&q=80',
+        ],
+        href: '#',
+    },
+];

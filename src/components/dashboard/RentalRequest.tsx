@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { ActiveListingRow, type ListingItem } from "@/components/dashboard/ListingCards";
 import { cn } from "@/lib/utils";

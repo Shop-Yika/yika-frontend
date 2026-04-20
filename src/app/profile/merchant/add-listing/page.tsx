@@ -1,25 +1,6 @@
 "use client";
 
-/**
- * post-listing/page.tsx
- *
- * "Post a Listing" page — blank form for a new rental listing.
- * Route: /dashboard/listings/new
- *
- * State changes vs previous version:
- *  - `duration` string removed from form state.
- *  - `selectedDuration` (number | null) added — drives the radio pills.
- *  - `rentalPrice` is now separate top-level state (was inside form).
- *  - `isError` / `errorMsg` removed — validation is now inside RentalPriceAndDuration.
- *
- * Backend wiring (TODO):
- *  1. Call POST /api/listings inside handlePublish with all form values.
- *  2. Replace console.log("navigate") with router.push("/dashboard/listings").
- *  3. Lift AvailabilityCalendar's selected dates state to here and include in payload.
- */
-
 import { useState } from "react";
-import { SelectItem } from "@/components/ui/select";
 import Link from "next/link";
 import {
     usePhotoSlots,
@@ -63,14 +44,8 @@ export default function PostListingPage() {
         setRentalPrice(""); // reset so they re-enter for the new duration
     };
 
-    /**
-     * handlePublish — submit new listing to API.
-     * TODO: replace with real API call.
-     */
     const handlePublish = () => {
-        console.log("Publishing:", { form, selectedDuration, rentalPrice, slots });
-        // await createListing({ ...form, duration: selectedDuration, rentalPrice, photos: slots.map(s => s.file) });
-        // router.push("/dashboard/listings");
+        // TODO: await createListing({ ...form, duration: selectedDuration, rentalPrice, photos: slots.map(s => s.file) });
     };
 
     return (

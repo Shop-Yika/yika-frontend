@@ -71,7 +71,7 @@ export function usePhotoSlots(initialPreviews?: string[]) {
     return { slots, handleChange, handleRemove };
 }
 
-export function useRentalPricing(rrp: string, selectedDuration: number | null) {
+export function useRentalPricing(rrp: string) {
     const rrpNum = parseFloat(rrp) || 0;
     const recommendedPrice = rrpNum > 0 ? rrpNum * 0.5 : 0;
     const maxPrice = recommendedPrice;
@@ -195,7 +195,7 @@ export function RentalPriceAndDuration({
     rentalPrice: string;
     onRentalPriceChange: (val: string) => void;
 }) {
-    const { recommendedPrice, maxPrice } = useRentalPricing(rrp, selectedDuration);
+    const { recommendedPrice, maxPrice } = useRentalPricing(rrp);
     const rentalNum = parseFloat(rentalPrice) || 0;
     const isOverCap = selectedDuration !== null && rentalPrice !== "" && rentalNum > maxPrice && maxPrice > 0;
 

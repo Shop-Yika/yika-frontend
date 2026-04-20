@@ -1,22 +1,5 @@
 "use client";
 
-/**
- * edit-listing/page.tsx
- *
- * "Edit Listing" page — pre-populated form for updating an existing listing.
- * Route: /dashboard/listings/[id]/edit
- *
- * State changes vs previous version:
- *  - `duration` string removed from form; replaced with `selectedDuration` (number).
- *  - `rentalPrice` is now separate top-level state.
- *  - Validation lives inside RentalPriceAndDuration — no isError/errorMsg here.
- *
- * Backend wiring (TODO):
- *  1. Fetch listing by ID and replace SAMPLE_LISTING.
- *  2. Call PATCH /api/listings/[id] inside handleSave.
- *  3. Lift AvailabilityCalendar's selected dates to here and pre-seed from API.
- */
-
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -26,7 +9,7 @@ import {
     InlineAlert,
 } from "@/components/dashboard/listing-shared";
 
-// ─── Sample data (replace with real API fetch) ────────────────────────────────
+// TODO: replace with real API fetch by listing ID
 
 const SAMPLE_LISTING = {
     itemName:    "Leather Mini Skirt",
@@ -84,13 +67,11 @@ export default function EditListingPage() {
      * TODO: replace with real PATCH call.
      */
     const handleSave = () => {
-        console.log("Saving:", { form, selectedDuration, rentalPrice, slots });
-        // await updateListing(id, { ...form, duration: selectedDuration, rentalPrice, photos: slots.map(s => s.file) });
-        // router.push("/dashboard/listings");
+        // TODO: await updateListing(id, { ...form, duration: selectedDuration, rentalPrice, photos: slots.map(s => s.file) });
     };
 
     return (
-        <div className="min-h-screen bg-white rounded-lg shadow-md mt-10 flex justify-center p-5">
+        <div className="min-h-screen bg-white rounded-2xl shadow-none border border-[#E5E7EB] mt-10 flex justify-center p-5">
 
         <FormShell
                 title="Edit Listing"
