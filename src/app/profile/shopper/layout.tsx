@@ -5,7 +5,7 @@ export default function ShopperLayout({children}: {children: ReactNode}) {
     return (
         <>
             <Tabs mode="shopper" />
-            <div>{children}</div>
+            <main>{children}</main>
         </>
     );
 }
