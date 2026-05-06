@@ -71,10 +71,13 @@ export function usePhotoSlots(initialPreviews?: string[]) {
     return { slots, handleChange, handleRemove };
 }
 
-export function useRentalPricing(rrp: string) {
+export function useRentalPricing(rrp: string, duration: number | null) {
     const rrpNum = parseFloat(rrp) || 0;
-    const recommendedPrice = rrpNum > 0 ? rrpNum * 0.5 : 0;
-    const maxPrice = recommendedPrice;
+    const recommendedPrice =
+        rrpNum > 0 && duration !== null
+            ? 0.115 * rrpNum * Math.pow(duration, 0.402)
+            : 0;
+    const maxPrice = recommendedPrice > 0 ? 1.2 * recommendedPrice : 0;
     return { recommendedPrice, maxPrice };
 }
 
@@ -187,17 +190,33 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 // ─── Rental Price and Duration ────────────────────────────────────────────────
 
 export function RentalPriceAndDuration({
-                                           rrp, selectedDuration, onDurationChange, rentalPrice, onRentalPriceChange,
-                                       }: {
+    rrp, selectedDuration, onDurationChange, rentalPrice, onRentalPriceChange,
+}: {
     rrp: string;
     selectedDuration: number | null;
     onDurationChange: (days: number) => void;
     rentalPrice: string;
     onRentalPriceChange: (val: string) => void;
 }) {
-    const { recommendedPrice, maxPrice } = useRentalPricing(rrp);
-    const rentalNum = parseFloat(rentalPrice) || 0;
-    const isOverCap = selectedDuration !== null && rentalPrice !== "" && rentalNum > maxPrice && maxPrice > 0;
+    const [showCapAlert, setShowCapAlert] = useState(false);
+    const { recommendedPrice, maxPrice } = useRentalPricing(rrp, selectedDuration);
+
+    const handlePriceChange = (val: string) => {
+        const num = parseFloat(val) || 0;
+        if (maxPrice > 0 && num > maxPrice) {
+            onRentalPriceChange(maxPrice.toFixed(2));
+            setShowCapAlert(true);
+        } else {
+            onRentalPriceChange(val);
+            setShowCapAlert(false);
+        }
+    };
+
+    // Reset alert state when duration changes (new cap applies)
+    const handleDurationChange = (days: number) => {
+        setShowCapAlert(false);
+        onDurationChange(days);
+    };
 
     return (
         <div className="flex flex-col gap-3">
@@ -219,7 +238,7 @@ export function RentalPriceAndDuration({
                         <button
                             key={opt.days}
                             type="button"
-                            onClick={() => onDurationChange(opt.days)}
+                            onClick={() => handleDurationChange(opt.days)}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all",
                                 isActive
@@ -243,31 +262,33 @@ export function RentalPriceAndDuration({
             {selectedDuration !== null && (
                 <div className="flex flex-col gap-1.5">
                     <div className="flex gap-3">
+                        {/* Recommended price (read-only) */}
                         <div className="flex-1">
                             <input
                                 type="number"
                                 className={cn(inputCls, "bg-[#FAFAFA] text-[#8A85A0]")}
-                                value={recommendedPrice > 0 ? recommendedPrice.toFixed(0) : ""}
+                                value={recommendedPrice > 0 ? recommendedPrice.toFixed(2) : ""}
                                 readOnly
-                                placeholder="0"
-                                min={0}
-                                step={1}
+                                placeholder="0.00"
+                                tabIndex={-1}
                             />
                         </div>
+                        {/* Editable rental price */}
                         <div className="flex-1">
                             <input
                                 type="number"
-                                className={cn(inputCls, isOverCap && "border-red-400 focus:ring-red-300/30 focus:border-red-400")}
+                                className={cn(inputCls, showCapAlert && "border-amber-400 focus:ring-amber-300/30 focus:border-amber-400")}
                                 value={rentalPrice}
-                                onChange={(e) => onRentalPriceChange(e.target.value)}
-                                placeholder="0"
+                                onChange={(e) => handlePriceChange(e.target.value)}
+                                onBlur={() => setShowCapAlert(false)}
+                                placeholder="0.00"
                                 min={0}
-                                step={1}
+                                step={0.01}
                             />
                         </div>
                     </div>
                     <p className="text-[12px] text-[#8A85A0]">Recommended price</p>
-                    {isOverCap && maxPrice > 0 && (
+                    {showCapAlert && maxPrice > 0 && (
                         <InlineAlert
                             message={`Rental prices are capped based on your item's value. Maximum for this duration: $${maxPrice.toFixed(2)}.`}
                             type="warning"
@@ -354,7 +375,7 @@ export function AvailabilityCalendar() {
         week: "flex w-full",
         day: "flex-1 flex items-center justify-center aspect-square",
         day_button: cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
+            "w-11 h-11 rounded-lg flex items-center justify-center",
             "text-[13px] font-normal text-[#1A1530] transition-all cursor-pointer",
             "hover:bg-[#F3EEFF] hover:text-[#9B5DE5]",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B5DE5]/30",
@@ -388,10 +409,10 @@ export function AvailabilityCalendar() {
 
             {/* Calendar card — using shadcn Card for consistent styling */}
             <Card className="rounded-2xl border-none mb-5 shadow-none">
-                <CardContent className="p-5">
+                <CardContent className="p-6 sm:p-8">
 
                     {/* Header row: [←] [Month A label] [Month B label] [→] */}
-                    <div className="flex items-center gap-3 mb-5">
+                    <div className="flex items-center gap-2 mb-5">
 
                         {/* ← Previous */}
                         <button type="button" onClick={goBack} aria-label="Previous month" className={navArrow}>
@@ -416,7 +437,7 @@ export function AvailabilityCalendar() {
                     </div>
 
                     {/* Month grids */}
-                    <div className="flex justify-center gap-10">
+                    <div className="flex justify-center gap-16">
 
                         {/* Left month — always visible */}
                         <div className="flex items-center min-w-0">

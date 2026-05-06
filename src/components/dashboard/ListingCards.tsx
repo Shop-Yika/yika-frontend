@@ -3,20 +3,25 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StatusBadge } from "./StatusBadge";
+
+export { StatusBadge };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 /** Status values a listing can have. */
 export type ListingStatus = "live" | "pending" | "ended";
 
-/** Status values an order can have. */
+/** Status values an order can have (merchant view). */
 export type OrderStatus = "live" | "pending" | "rented" | "returned";
+
+/** Status values an order can have (shopper view). */
+export type ShopperOrderStatus = "Shipped" | "Delivered";
 
 /**
  * Data shape for a single listing item.
@@ -48,107 +53,24 @@ export interface OrderItem {
     orderNumber: string;
     /** Number of items in the order */
     itemCount: number;
-    /** Renter's display name */
+    /** Renter's display name (merchant view) */
     renterName: string;
+    /** Seller's @handle (shopper view) */
+    sellerHandle: string;
     /** Total order value in dollars */
     total: number;
     /** ISO date string or formatted date string */
     dueDate: string;
+    /** Date the order was placed (shopper view) */
+    orderDate: string;
+    /** Merchant-side status */
     status: OrderStatus;
+    /** Shopper-side status */
+    shopperStatus: ShopperOrderStatus;
     /** Up to 2 product thumbnail URLs shown stacked */
     imageUrls: string[];
     /** Optional href for the row's chevron link */
     href?: string;
-}
-
-// ─── Status config ────────────────────────────────────────────────────────────
-
-/**
- * Visual config for each status value.
- * Defines the badge border/background/text colours and dot colour.
- */
-const LISTING_STATUS_CONFIG: Record<
-    ListingStatus,
-    { label: string; dot: string; badge: string }
-> = {
-    live: {
-        label: "Live",
-        dot:   "bg-[#15803D]",
-        badge: "border border-[#15803D] bg-[#F0FDF4] text-[#15803D]",
-    },
-    pending: {
-        label: "Pending",
-        dot:   "bg-[#B45309]",
-        badge: "border border-[#D97706] bg-[#FFFBEB] text-[#B45309]",
-    },
-    ended: {
-        label: "Listing ended",
-        dot:   "bg-[#9CA3AF]",
-        badge: "border border-[#E5E7EB] bg-[#F9FAFB] text-[#6B7280]",
-    },
-};
-
-const ORDER_STATUS_CONFIG: Record<
-    OrderStatus,
-    { label: string; dot: string; badge: string }
-> = {
-    live: {
-        label: "Live",
-        dot:   "bg-[#15803D]",
-        badge: "border border-[#15803D] bg-[#F0FDF4] text-[#15803D]",
-    },
-    pending: {
-        label: "Pending",
-        dot:   "bg-[#B45309]",
-        badge: "border border-[#D97706] bg-[#FFFBEB] text-[#B45309]",
-    },
-    rented: {
-        label: "Rented",
-        dot:   "bg-[#EA580C]",
-        badge: "border border-[#EA580C] bg-[#FFF7ED] text-[#EA580C]",
-    },
-    returned: {
-        label: "Returned",
-        dot:   "bg-[#9CA3AF]",
-        badge: "border border-[#E5E7EB] bg-[#F9FAFB] text-[#6B7280]",
-    },
-};
-
-// ─── Shared StatusBadge ───────────────────────────────────────────────────────
-
-/**
- * StatusBadge
- *
- * Renders a pill badge with a coloured dot for any listing or order status.
- * Pass either a ListingStatus or OrderStatus value.
- *
- * Usage:
- *   <StatusBadge status="live" type="listing" />
- *   <StatusBadge status="rented" type="order" />
- */
-export function StatusBadge({
-                                status,
-                                type,
-                            }: {
-    status: ListingStatus | OrderStatus;
-    type: "listing" | "order";
-}) {
-    const config =
-        type === "listing"
-            ? LISTING_STATUS_CONFIG[status as ListingStatus]
-            : ORDER_STATUS_CONFIG[status as OrderStatus];
-
-    return (
-        <Badge
-            className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium whitespace-nowrap",
-                config.badge
-            )}
-        >
-            <span className={cn("w-2 h-2 rounded-full flex-shrink-0", config.dot)} />
-            {config.label}
-        </Badge>
-    );
 }
 
 // ─── Variant 1: Active Listing Row ───────────────────────────────────────────

@@ -171,7 +171,7 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
     return (
         <section className="relative max-w-full min-h-screen flex flex-col lg:flex-row bg-[#F6F6F6]">
             {/* Desktop Filter Sidebar - Always visible on lg+ */}
-            <div className="hidden lg:block w-full max-w-[363.84px] border-r border-black/30 bg-white z-10 sticky top-[76px] h-screen overflow-hidden">
+            <div className="hidden lg:block w-full max-w-[363.84px] border-r border-black/30 bg-white z-10 sticky top-[76px] h-[calc(100vh-76px)] overflow-hidden">
                 <FilterSidebar
                     filters={pendingFilters}
                     onFilterChange={handleFilterChange}

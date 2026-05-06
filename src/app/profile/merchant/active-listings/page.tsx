@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ActiveListingRow } from "@/components/dashboard/ListingCards";
+import { ActiveListingRow, PastListingCard } from "@/components/dashboard/ListingCards";
 import RentalRequest from "@/components/dashboard/RentalRequest";
-import { SAMPLE_LISTINGS } from "@/lib/data/sample-data";
+import { SAMPLE_LISTINGS, SAMPLE_PAST_LISTINGS } from "@/lib/data/sample-data";
 
 export default function ActiveListings() {
-    const hasPending = SAMPLE_LISTINGS.some((l) => l.status === "pending");
+    const activeListings = SAMPLE_LISTINGS.filter((l) => l.status === "live" || l.status === "pending");
+    const hasPending = activeListings.some((l) => l.status === "pending");
 
     return (
         <>
@@ -14,7 +15,7 @@ export default function ActiveListings() {
                 <div className="flex items-start justify-between">
                     <div>
                         <h2 className="text-xl font-bold text-[#111827]">Your Listings</h2>
-                        <p className="text-[13px] text-[#6B7280] mt-0.5">{SAMPLE_LISTINGS.length} Listings Total</p>
+                        <p className="text-[13px] text-[#6B7280] mt-0.5">{activeListings.length} Listings Total</p>
                     </div>
                     <Link
                         href="/profile/merchant/add-listing"
@@ -31,7 +32,7 @@ export default function ActiveListings() {
                 )}
 
                 <div className="flex flex-col gap-5">
-                    {SAMPLE_LISTINGS.map((item) => (
+                    {activeListings.map((item) => (
                         <ActiveListingRow
                             key={item.id}
                             item={item}
@@ -40,6 +41,20 @@ export default function ActiveListings() {
                     ))}
                 </div>
             </section>
+            {/* Past listings */}
+            {SAMPLE_PAST_LISTINGS.length > 0 && (
+                <section className="flex flex-col gap-6 p-5 bg-white rounded-2xl shadow-none mt-6 border border-[#E5E7EB]">
+                    <div>
+                        <h2 className="text-xl font-bold text-[#111827]">Past Listings</h2>
+                        <p className="text-[13px] text-[#6B7280] mt-0.5">{SAMPLE_PAST_LISTINGS.length} listings</p>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        {SAMPLE_PAST_LISTINGS.map((item) => (
+                            <PastListingCard key={item.id} item={item} />
+                        ))}
+                    </div>
+                </section>
+            )}
         </>
     );
 }
