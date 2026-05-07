@@ -37,10 +37,6 @@ const merchantTabs: TabItem[] = [
         label: 'Active Rentals',
     },
     {
-        href: '/profile/merchant/past-listings',
-        label: 'Past Listings',
-    },
-    {
         href: '/profile/merchant/earnings',
         label: 'Your Earnings',
     },

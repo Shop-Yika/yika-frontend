@@ -21,10 +21,10 @@ export function filterInventory(
     );
   }
 
-  // Filter by brand (e.g., "GUCCI")
-  if (filters.brand) {
+  // Filter by brand — multi-select
+  if (filters.brand && filters.brand.length > 0) {
     filtered = filtered.filter(
-        item => item.brand.toLowerCase() === filters.brand?.toLowerCase()
+        item => filters.brand!.some(b => item.brand.toLowerCase() === b.toLowerCase())
     );
   }
 
@@ -42,17 +42,17 @@ export function filterInventory(
     );
   }
 
-  // Filter by color (e.g., "Pink")
-  if (filters.color) {
+  // Filter by color — multi-select
+  if (filters.color && filters.color.length > 0) {
     filtered = filtered.filter(
-        item => item.color?.toLowerCase() === filters.color?.toLowerCase()
+        item => filters.color!.some(c => item.color?.toLowerCase() === c.toLowerCase())
     );
   }
 
-  // Filter by size (e.g., "M")
-  if (filters.size) {
+  // Filter by size — multi-select
+  if (filters.size && filters.size.length > 0) {
     filtered = filtered.filter(
-        item => item.sizes?.includes(filters.size!)
+        item => filters.size!.some(s => item.sizes?.includes(s))
     );
   }
 
