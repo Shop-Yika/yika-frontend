@@ -77,7 +77,7 @@ export default function Settings() {
                         className={inputClass}
                         aria-label="Street address"
                     />
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <input
                             type="text"
                             value={fields.city}
