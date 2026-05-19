@@ -38,7 +38,7 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
     const {orderId} = await params;
     const currentStep = 3;
     const progressWidth = currentStep === steps.length ? 100 : ((currentStep - 0.5) / steps.length) * 100;
-    const progressHeight = (currentStep - 1) * 30;
+    const progressHeight = (currentStep - 1) * 33;
     const formatter = new Intl.NumberFormat('en-CA', {style: 'currency', currency: 'CAD'});
     const totalAmount = orderItems.reduce((sum, {quantity, unitPrice}) => sum + quantity * unitPrice, 0);
 
@@ -81,8 +81,8 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
                     </div>
 
                     {/* Mobile: vertical timeline */}
-                    <div aria-hidden="true" className="md:hidden absolute left-6 top-5 bottom-5 w-0.5 bg-[#E5E7EB]" />
-                    <div aria-hidden="true" className="md:hidden absolute left-6 top-5 w-0.5 bg-[#111827]" style={{height: `${progressHeight}%`}} />
+                    <div aria-hidden="true" className="md:hidden absolute left-6 top-px bottom-0 w-0.5 bg-[#E5E7EB]" />
+                    <div aria-hidden="true" className="md:hidden absolute left-6 top-px w-0.5 bg-[#111827]" style={{height: `${progressHeight}%`}} />
 
                     <ul className="flex flex-col gap-15 md:grid md:grid-cols-4 md:gap-4 md:text-center mt-10 md:mt-0">
                         {steps.map((step, index) => {
