@@ -36,13 +36,13 @@ export interface InventoryItem {
 export interface FilterOptions {
   // Basic filters
   category?: string;             // "Dresses"
-  brand?: string;                // "GUCCI"
+  brand?: string[];              // ["GUCCI", "CHANEL"] — multi-select
 
   // Fashion-specific filters
   gender?: string;               // "Women" | "Men"
   occasion?: string;             // "Casual" | "Formal"
-  color?: string;                // "Pink"
-  size?: string;                 // "M"
+  color?: string[];              // ["Pink", "Black"] — multi-select
+  size?: string[];               // ["S", "M"] — multi-select
   availability?: boolean;        // true = only show available items
 
   // Price range
