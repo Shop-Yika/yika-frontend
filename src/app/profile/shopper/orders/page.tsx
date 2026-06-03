@@ -1,19 +1,31 @@
-import OrderCard from '@/components/dashboard/OrderCard';
-import { SAMPLE_ORDERS } from '@/lib/data/sample-data';
+import { OrderRow } from '@/components/dashboard/OrderRow';
+import { orders } from '@/lib/data/repositories';
 
-export default function OrdersPage() {
+export default async function OrdersPage() {
+    const shopperOrders = await orders.listShopperOrders();
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-[auto_4fr_100px_100px_auto_1fr] gap-4 mt-4 md:mt-0">
-            <div className="hidden md:grid grid-cols-subgrid col-span-6 justify-items-center text-[11px] font-semibold tracking-wider uppercase text-[#9CA3AF] mt-6 mb-2">
-                <span className="invisible">Image</span>
-                <span className="justify-self-start invisible">Order</span>
-                <span>Total</span>
-                <span>Order date</span>
-                <span>Status</span>
-                <span className="invisible">Details</span>
+        <div className="flex flex-col gap-4 mt-4 md:mt-0">
+            {/* Column headers — desktop only.
+                Widths mirror OrderRow's desktop grid (72px thumb, 1fr title block,
+                100px total, 120px date, ~110px pill, ~28px chevron) so the labels
+                land over the correct cells regardless of variable pill text. */}
+            <div className="hidden md:grid grid-cols-[72px_minmax(0,1fr)_100px_120px_110px_28px] gap-4 px-4 pt-4 text-[11px] font-semibold tracking-wider uppercase text-text-faint">
+                <span aria-hidden="true" />
+                <span aria-hidden="true" />
+                <span className="text-center">Total</span>
+                <span className="text-center">Order date</span>
+                <span className="text-center">Status</span>
+                <span aria-hidden="true" />
             </div>
-            {SAMPLE_ORDERS.map(order => (
-                <OrderCard key={order.id} item={order} />
+
+            {shopperOrders.map((order) => (
+                <OrderRow
+                    key={order.id}
+                    order={order}
+                    hrefBase="/profile/shopper/orders/"
+                    showHandle
+                />
             ))}
         </div>
     );

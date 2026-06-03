@@ -3,7 +3,7 @@ import { Geist, Geist_Mono , Averia_Serif_Libre, Inter, Newsreader } from "next/
 import "./globals.css";
 
 //footer and navbar import
-import Navbar from "../components/navbar";
+import { AppHeader } from "../components/app-header";
 import Footer from "../components/footer"; // Make sure to import your Footer component
 
 // Fonts
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             />
         </head>
         <body className="font-satoshi antialiased flex flex-col min-h-screen">
-        <Navbar />
+        <AppHeader />
         <div className="flex-1 pt-[76.87px]"> {/* flex-1 makes this expand */}
             <div className="max-w-full mx-auto w-full">{children}</div>
         </div>

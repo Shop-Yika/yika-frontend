@@ -1,11 +1,6 @@
-import {ReactNode} from 'react';
-import Tabs from '@/components/dashboard/tabs';
+import { ReactNode } from 'react';
+import { DashboardShell } from '@/components/dashboard/DashboardShell';
 
-export default function ShopperLayout({children}: {children: ReactNode}) {
-    return (
-        <>
-            <Tabs mode="shopper" />
-            <main>{children}</main>
-        </>
-    );
+export default function ShopperLayout({ children }: { children: ReactNode }) {
+    return <DashboardShell mode="shopper">{children}</DashboardShell>;
 }
