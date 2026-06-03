@@ -8,9 +8,9 @@ import { MdOutlineEdit } from "react-icons/md";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "./StatusBadge";
+import { StatusPill } from "./StatusPill";
 
-export { StatusBadge };
+export { StatusPill };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ export function ActiveListingRow({
             {/* Right: status badge + actions */}
             <div className="flex items-center gap-3 flex-shrink-0">
                 {/* Status badge — always shown */}
-                <StatusBadge status={item.status} type="listing" />
+                <StatusPill variant={item.status} />
 
                     {/* Edit + delete — hidden when showActions=false OR status is "ended" */}
                 {showActions && item.status !== "ended" && (
@@ -216,7 +216,7 @@ export function PastListingCard({ item }: { item: ListingItem }) {
 
             {/* Right: always "Listing ended" badge */}
             <div className="flex-shrink-0">
-                <StatusBadge status="ended" type="listing" />
+                <StatusPill variant="ended" />
             </div>
         </div>
     );
@@ -290,7 +290,7 @@ export function OrderRow({ item }: { item: OrderItem }) {
 
             {/* STATUS badge */}
             <div className="flex-shrink-0">
-                <StatusBadge status={item.status} type="order" />
+                <StatusPill variant={item.status} />
             </div>
 
             {/* CHEVRON */}

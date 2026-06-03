@@ -1,7 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import StatusBadge from './StatusBadge';
+import { StatusPill, type StatusPillVariant } from './StatusPill';
 import type { OrderItem } from './ListingCards';
+
+const SHOPPER_STATUS_TO_VARIANT: Record<OrderItem['shopperStatus'], StatusPillVariant> = {
+    Shipped: 'shipped',
+    Delivered: 'delivered',
+};
 
 export default function OrderCard({item}: {item: OrderItem}) {
     const {orderNumber, itemCount, sellerHandle, total, orderDate, shopperStatus, imageUrls} = item;
@@ -31,7 +36,7 @@ export default function OrderCard({item}: {item: OrderItem}) {
                 <p className="text-[14px] text-text-muted">{orderDate}</p>
             </div>
             <div className="flex items-center gap-x-8 md:contents">
-                <StatusBadge status={shopperStatus} type="shopper" />
+                <StatusPill variant={SHOPPER_STATUS_TO_VARIANT[shopperStatus]} />
                 <Link
                     href={`/profile/shopper/orders/${orderNumber}`}
                     className="justify-self-end text-text-faint"

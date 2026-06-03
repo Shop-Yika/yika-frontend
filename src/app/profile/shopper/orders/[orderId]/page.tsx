@@ -1,6 +1,6 @@
 import {ComponentType} from 'react';
 import Link from 'next/link';
-import {StatusBadge} from '@/components/dashboard/StatusBadge';
+import {StatusPill} from '@/components/dashboard/StatusPill';
 import OrderPlacedIcon from '@/components/dashboard/icons/OrderPlacedIcon';
 import ProcessingIcon from '@/components/dashboard/icons/ProcessingIcon';
 import ShippedIcon from '@/components/dashboard/icons/ShippedIcon';
@@ -62,7 +62,7 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
             <section className="border border-[#E5E7EB] rounded-xl py-6 px-4 md:px-8 mb-4 md:mb-7.5">
                 <h2 className="font-bold text-[1.25rem] text-[#111827]">Order #{orderId}</h2>
                 <div className="my-4">
-                    <StatusBadge status="Shipped" type="shopper" />
+                    <StatusPill variant="shipped" />
                 </div>
 
                 <div className="relative">
