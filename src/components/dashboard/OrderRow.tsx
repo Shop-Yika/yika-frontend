@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusPill, type StatusPillVariant } from './StatusPill';
-import type { Order, OrderStatus } from '@/lib/data/types';
+import type { Order, OrderStatus, Rental, RentalOrderStatus } from '@/lib/data/types';
 
 /**
  * OrderRow
@@ -11,8 +11,8 @@ import type { Order, OrderStatus } from '@/lib/data/types';
  * Reusable order row for table-like lists across the dashboard.
  *
  * Used by:
- *  - Shopper All Orders (`/profile/shopper/orders`)
- *  - Merchant rental list (`/profile/merchant/rentals`) — Phase B migration
+ *  - Shopper All Orders (`/profile/shopper/orders`) — pass `order` + `showHandle`
+ *  - Merchant Active Rentals (`/profile/merchant/rentals`) — pass `rental`
  *  - Merchant Earnings history table — Phase B migration
  *
  * Layout (desktop):
@@ -22,11 +22,17 @@ import type { Order, OrderStatus } from '@/lib/data/types';
  * The chevron is rendered as a Next.js <Link> so the entire right edge is
  * keyboard-focusable; the rest of the row is a non-interactive surface.
  *
- * @example
+ * @example Shopper view
  *   <OrderRow
  *     order={order}
  *     hrefBase="/profile/shopper/orders/"
  *     showHandle
+ *   />
+ *
+ * @example Merchant rental view
+ *   <OrderRow
+ *     rental={rental}
+ *     hrefBase="/profile/merchant/rentals/"
  *   />
  */
 
@@ -46,7 +52,35 @@ const ORDER_STATUS_TO_PILL: Record<OrderStatus, StatusPillVariant> = {
     Returned: 'returned',
 };
 
-// ─── Subtitle builder ────────────────────────────────────────────────────────
+/**
+ * Maps merchant-side `RentalOrderStatus` values to `<StatusPill>` variants.
+ * The mapping is 1:1 — the rental lifecycle and the pill variant share the
+ * same set of states by design.
+ */
+const RENTAL_STATUS_TO_PILL: Record<RentalOrderStatus, StatusPillVariant> = {
+    live: 'live',
+    pending: 'pending',
+    rented: 'rented',
+    returned: 'returned',
+};
+
+// ─── Display normalization ───────────────────────────────────────────────────
+
+/**
+ * Internal display contract — every input shape (shopper Order, merchant
+ * Rental) collapses to this before rendering. Keeps the JSX body simple
+ * and ensures the two views render identically except where the props
+ * explicitly diverge (subtitle text + pill variant).
+ */
+type RowDisplay = {
+    orderNumber: string;
+    total: number;
+    /** The date rendered in the date column (order date OR due date). */
+    date: string;
+    pillVariant: StatusPillVariant;
+    thumbnailUrls: string[];
+    subtitle: { prefix: string; handle?: string; name?: string };
+};
 
 /**
  * Builds the row's subtitle line.
@@ -55,31 +89,60 @@ const ORDER_STATUS_TO_PILL: Record<OrderStatus, StatusPillVariant> = {
  *   1 item · Addie Johnson
  *   2 items · @kirby
  *   3 items from @kirby
- *
- * `showHandle` and `showBuyerName` control which identifier appears. When
- * both are set, the handle wins (shopper-style) so call sites don't need
- * to coordinate.
  */
 function buildSubtitle(
-    order: Order,
-    showHandle: boolean,
-    showBuyerName: boolean,
+    itemCount: number,
+    options: { handle?: string; name?: string },
 ): { prefix: string; handle?: string; name?: string } {
-    const noun = order.itemCount === 1 ? 'item' : 'items';
-    const lead = `${order.itemCount} ${noun}`;
+    const noun = itemCount === 1 ? 'item' : 'items';
+    const lead = `${itemCount} ${noun}`;
 
-    if (showHandle) {
+    if (options.handle) {
         // "3 items from @kirby" — preposition reads better with multiple items;
         // single-item orders use the same construction for consistency.
-        return { prefix: `${lead} from `, handle: order.sellerHandle };
+        return { prefix: `${lead} from `, handle: options.handle };
     }
 
-    if (showBuyerName && order.buyerName) {
-        return { prefix: `${lead} · `, name: order.buyerName };
+    if (options.name) {
+        return { prefix: `${lead} · `, name: options.name };
     }
 
     // Fallback — show only the item count.
     return { prefix: lead };
+}
+
+function fromOrder(
+    order: Order,
+    showHandle: boolean,
+    showBuyerName: boolean,
+): RowDisplay {
+    // When both flags are set, the handle wins (shopper-style) so call sites
+    // don't need to coordinate.
+    const subtitleOpts = showHandle
+        ? { handle: order.sellerHandle }
+        : showBuyerName
+            ? { name: order.buyerName }
+            : {};
+
+    return {
+        orderNumber: order.orderNumber,
+        total: order.total,
+        date: order.orderDate,
+        pillVariant: ORDER_STATUS_TO_PILL[order.status],
+        thumbnailUrls: order.thumbnailUrls,
+        subtitle: buildSubtitle(order.itemCount, subtitleOpts),
+    };
+}
+
+function fromRental(rental: Rental): RowDisplay {
+    return {
+        orderNumber: rental.orderNumber,
+        total: rental.total,
+        date: rental.dueDate,
+        pillVariant: RENTAL_STATUS_TO_PILL[rental.status],
+        thumbnailUrls: rental.thumbnailUrls,
+        subtitle: buildSubtitle(rental.itemCount, { name: rental.buyerName }),
+    };
 }
 
 // ─── Thumbnails ──────────────────────────────────────────────────────────────
@@ -148,33 +211,51 @@ function OrderThumbnails({ urls, alt }: { urls: string[]; alt: string }) {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export type OrderRowProps = {
-    order: Order;
+type BaseProps = {
     /**
      * Base href for the row's chevron link. Final destination is
-     * `${hrefBase}${order.orderNumber}`.
+     * `${hrefBase}${order.orderNumber}` (or rental.orderNumber).
      *
      * @example "/profile/shopper/orders/" — chevron links to
      *          `/profile/shopper/orders/YK-2026-001`
      */
     hrefBase: string;
-    /** When true, render `@sellerHandle` in the subtitle (shopper view). */
-    showHandle?: boolean;
-    /** When true, render the buyer's display name in the subtitle (merchant view). */
-    showBuyerName?: boolean;
     /** Optional extra classes for the outer container. */
     className?: string;
 };
 
-export function OrderRow({
-    order,
-    hrefBase,
-    showHandle = false,
-    showBuyerName = false,
-    className,
-}: OrderRowProps) {
-    const subtitle = buildSubtitle(order, showHandle, showBuyerName);
-    const pillVariant = ORDER_STATUS_TO_PILL[order.status];
+type OrderInputProps = BaseProps & {
+    order: Order;
+    /** When true, render `@sellerHandle` in the subtitle (shopper view). */
+    showHandle?: boolean;
+    /** When true, render the buyer's display name in the subtitle (merchant view). */
+    showBuyerName?: boolean;
+    rental?: never;
+};
+
+type RentalInputProps = BaseProps & {
+    rental: Rental;
+    order?: never;
+    showHandle?: never;
+    showBuyerName?: never;
+};
+
+/**
+ * Discriminated union — callers pass either `order` (shopper view) or
+ * `rental` (merchant view), never both. TypeScript prevents accidental
+ * mixing at the type level.
+ */
+export type OrderRowProps = OrderInputProps | RentalInputProps;
+
+export function OrderRow(props: OrderRowProps) {
+    const { hrefBase, className } = props;
+    const display: RowDisplay = props.rental
+        ? fromRental(props.rental)
+        : fromOrder(
+            props.order,
+            props.showHandle ?? false,
+            props.showBuyerName ?? false,
+        );
 
     return (
         <div
@@ -188,43 +269,45 @@ export function OrderRow({
         >
             {/* Thumbnails */}
             <OrderThumbnails
-                urls={order.thumbnailUrls}
-                alt={`Order ${order.orderNumber}`}
+                urls={display.thumbnailUrls}
+                alt={`Order ${display.orderNumber}`}
             />
 
             {/* Order id + subtitle */}
             <div className="min-w-0">
                 <p className="font-semibold text-[18px] text-text-primary truncate">
-                    Order #{order.orderNumber}
+                    Order #{display.orderNumber}
                 </p>
                 <p className="text-[14px] text-text-muted truncate">
-                    {subtitle.prefix}
-                    {subtitle.handle && (
-                        <span className="text-brand-magenta">@{subtitle.handle}</span>
+                    {display.subtitle.prefix}
+                    {display.subtitle.handle && (
+                        <span className="text-brand-magenta">
+                            @{display.subtitle.handle}
+                        </span>
                     )}
-                    {subtitle.name}
+                    {display.subtitle.name}
                 </p>
             </div>
 
             {/* Total — mobile renders inline with the status pill row */}
             <p className="hidden md:block text-[15px] font-medium text-text-primary text-center whitespace-nowrap">
-                ${order.total.toFixed(2)}
+                ${display.total.toFixed(2)}
             </p>
 
             {/* Date — desktop only */}
             <p className="hidden md:block text-[15px] text-text-muted text-center whitespace-nowrap">
-                {order.orderDate}
+                {display.date}
             </p>
 
             {/* Status pill — placed in the meta row on mobile, dedicated column on desktop */}
             <div className="hidden md:flex justify-center">
-                <StatusPill variant={pillVariant} />
+                <StatusPill variant={display.pillVariant} />
             </div>
 
             {/* Chevron link */}
             <Link
-                href={`${hrefBase}${order.orderNumber}`}
-                aria-label={`View order ${order.orderNumber}`}
+                href={`${hrefBase}${display.orderNumber}`}
+                aria-label={`View order ${display.orderNumber}`}
                 className="justify-self-end text-text-faint hover:text-text-muted transition-colors p-1"
             >
                 <ChevronRight className="w-5 h-5" aria-hidden="true" />
@@ -233,10 +316,10 @@ export function OrderRow({
             {/* Mobile meta strip — total / date / status — spans the full row below the title */}
             <div className="col-span-3 md:hidden flex items-center justify-between gap-2 pt-1 -mt-1">
                 <span className="text-[14px] font-medium text-text-primary">
-                    ${order.total.toFixed(2)}
+                    ${display.total.toFixed(2)}
                 </span>
-                <span className="text-[14px] text-text-muted">{order.orderDate}</span>
-                <StatusPill variant={pillVariant} />
+                <span className="text-[14px] text-text-muted">{display.date}</span>
+                <StatusPill variant={display.pillVariant} />
             </div>
         </div>
     );

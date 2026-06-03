@@ -60,6 +60,29 @@ export type Order = {
 };
 
 /**
+ * Rental row — used in the merchant Active Rentals list.
+ *
+ * Same display shape as `Order` but expresses merchant-side semantics:
+ *   - `status` is the rental lifecycle (live / pending / rented / returned)
+ *     rather than the shopper-side order lifecycle.
+ *   - `dueDate` is the rental's return-by date — the column rendered in
+ *     the table is "Due Date", not "Order Date".
+ *   - `buyerName` is always present (the merchant always sees who rented
+ *     the item), so it's required here rather than optional.
+ */
+export type Rental = {
+    id: string;
+    orderNumber: string;
+    itemCount: number;
+    buyerName: string;
+    total: number;
+    /** Display-formatted rental return date (see file header). */
+    dueDate: string;
+    status: RentalOrderStatus;
+    thumbnailUrls: string[];
+};
+
+/**
  * Order detail — used on the shopper Order Detail page (stepper, shipment
  * info, line items, payment summary).
  */

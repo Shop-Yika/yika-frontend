@@ -4,6 +4,18 @@ import { orders } from '@/lib/data/repositories';
 export default async function OrdersPage() {
     const shopperOrders = await orders.listShopperOrders();
 
+    // Empty state — shown when the shopper has no orders yet.
+    // Centered, muted copy per B2 acceptance criteria.
+    if (shopperOrders.length === 0) {
+        return (
+            <div className="flex items-center justify-center py-24">
+                <p className="text-[15px] text-text-muted text-center">
+                    You haven&apos;t placed any orders yet
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-4 mt-4 md:mt-0">
             {/* Column headers — desktop only.

@@ -16,6 +16,7 @@ import { MOCK_EARNINGS_HISTORY, MOCK_EARNINGS_SUMMARY } from './mock-earnings';
 import { MOCK_LISTINGS } from './mock-listings';
 import { MOCK_NOTIFICATIONS } from './mock-notifications';
 import { MOCK_ORDERS, MOCK_ORDER_DETAILS } from './mock-orders';
+import { MOCK_RENTALS } from './mock-rentals';
 import { MOCK_USER } from './mock-user';
 import type {
     EarningsHistoryEntry,
@@ -24,6 +25,7 @@ import type {
     Notification,
     Order,
     OrderDetail,
+    Rental,
     UserProfile,
 } from './types';
 
@@ -88,6 +90,80 @@ export const listings = {
         return MOCK_LISTINGS
             .filter((l) => l.status === 'ended')
             .map((l) => ({ ...l }));
+    },
+
+    // TODO(backend): DELETE /api/listings/:id
+    // Stub for B5 (Merchant Active Listings) — mock data is module-scoped and
+    // resets per request, so this is intentionally a no-op. When the backend
+    // lands, replace with the real call and have the page revalidate.
+    async delete(id: string): Promise<void> {
+        await sleep();
+        // Touch the parameter so the lint config doesn't flag it as unused
+        // before the backend wiring lands.
+        void id;
+    },
+
+    /**
+     * Stub create for the merchant "Post a Listing" form (issue B9).
+     *
+     * Returns a synthetic `Listing` echoing the submitted draft, with a
+     * generated id and `pending` status (new listings always start in
+     * review). The caller can `console.log` the returned record or wire
+     * a toast — no persistence happens yet.
+     *
+     * TODO(backend): POST /api/listings — multipart upload with photos.
+     */
+    async createListing(draft: ListingDraft): Promise<Listing> {
+        await sleep();
+        return {
+            id: `l-${Date.now()}`,
+            name: draft.name,
+            category: draft.category,
+            brand: draft.brand,
+            // No separate rental price on the draft; surface retail as a
+            // stand-in so downstream rows render a non-zero value in dev.
+            price: draft.retailPrice,
+            durationDays: draft.durationDays,
+            imageUrl: '',
+            status: 'pending',
+        };
+    },
+};
+
+/**
+ * Draft payload submitted by the "Post a Listing" merchant form (B9).
+ *
+ * Mirrors the form state — NOT the published `Listing` type. The form
+ * collects additional context (multiple photos, retail price, size,
+ * availability windows) that doesn't yet live on the listing record.
+ * When the real backend lands, this becomes the request body for
+ * `POST /api/listings`.
+ */
+export type ListingDraft = {
+    name: string;
+    category: string;
+    size: string;
+    brand: string;
+    /** Retail / paid price in dollars (RRP). */
+    retailPrice: number;
+    /** Rental duration the merchant selected, in days. */
+    durationDays: number;
+    /** Locally-held photo files; not uploaded yet. */
+    photos: File[];
+    /** Availability windows picked on the calendar. */
+    availability: { from: Date; to: Date }[];
+};
+
+// ─── Rentals ──────────────────────────────────────────────────────────────────
+
+export const rentals = {
+    // TODO(backend): GET /api/merchant/rentals?status=active
+    async listActive(): Promise<Rental[]> {
+        await sleep();
+        return MOCK_RENTALS.map((r) => ({
+            ...r,
+            thumbnailUrls: [...r.thumbnailUrls],
+        }));
     },
 };
 
