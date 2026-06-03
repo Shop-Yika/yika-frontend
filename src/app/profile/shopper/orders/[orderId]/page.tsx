@@ -89,7 +89,7 @@ function SectionCard({
 }) {
     return (
         <section
-            className={`rounded-2xl border border-border-default bg-surface p-6 md:p-8 ${className}`}
+            className={`rounded-2xl border border-border-default bg-surface p-4 md:p-8 ${className}`}
         >
             {children}
         </section>
@@ -170,7 +170,7 @@ export default async function OrderDetailPage({
     );
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 md:gap-6">
             <Breadcrumb orderNumber={order.orderNumber} />
 
             {/* ─── Card 1: Order header + stepper ─────────────────────────── */}
@@ -181,7 +181,7 @@ export default async function OrderDetailPage({
                 <div className="mt-3">
                     <StatusPill variant={pillVariant} />
                 </div>
-                <div className="mt-8">
+                <div className="mt-6 md:mt-8">
                     <OrderStatusStepper currentStep={stepKey} />
                 </div>
             </SectionCard>

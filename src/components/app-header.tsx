@@ -54,8 +54,29 @@ export function AppHeader() {
 
   return (
     <>
-      <div className="bg-page fixed top-0 z-[9999] flex h-[76px] w-full items-center justify-between px-8 text-[16.65px]">
-        <div className="flex items-center gap-12">
+      <div className="bg-page fixed top-0 z-[9999] flex h-[76px] w-full items-center justify-between px-4 md:px-8 text-[16.65px]">
+        <div className="flex items-center gap-3 md:gap-12">
+          {/* Mobile hamburger — left of logo per figma/5193-5040-mobile-order-detail.png */}
+          <button
+            className="flex h-[18px] w-[24px] flex-col justify-between lg:hidden"
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+            aria-expanded={dropdownOpen}
+          >
+            {dropdownOpen ? (
+              <>
+                <span className="block h-[2px] w-full origin-center translate-y-[8px] rotate-45 bg-black" />
+                <span className="block h-[2px] w-full origin-center -translate-y-[8px] -rotate-45 bg-black" />
+              </>
+            ) : (
+              <>
+                <span className="block h-0.5 w-full bg-black" />
+                <span className="block h-0.5 w-full bg-black" />
+                <span className="block h-0.5 w-full bg-black" />
+              </>
+            )}
+          </button>
+
           {/* Logo */}
           <Link href="/" aria-label="Yika home">
             <Image
@@ -82,10 +103,14 @@ export function AppHeader() {
           </ul>
         </div>
 
-        {/* Desktop icons */}
-        <div className="hidden items-center gap-6 lg:flex">
-          {/* Favorites with count badge */}
-          <Link href="/favorites" className="relative" aria-label="Favorites">
+        {/* Right-side action icons.
+            Desktop (lg+): full 4-icon set (heart, bell, profile, cart).
+            Mobile (<lg): condensed 2-icon set (bell, cart) — per mobile Figma
+            the heart and profile drop because they're reachable through the
+            hamburger drawer. */}
+        <div className="flex items-center gap-5 md:gap-6">
+          {/* Favorites with count badge — desktop only */}
+          <Link href="/favorites" className="relative hidden lg:block" aria-label="Favorites">
             <MdFavoriteBorder
               className={`cursor-pointer text-[25px] ${
                 path === "/favorites" ? "text-primary" : ""
@@ -98,7 +123,7 @@ export function AppHeader() {
             )}
           </Link>
 
-          {/* Notifications bell with unread badge */}
+          {/* Notifications bell with unread badge — always visible */}
           <button
             type="button"
             onClick={() => setDrawerOpen(true)}
@@ -109,7 +134,7 @@ export function AppHeader() {
                 : "Notifications"
             }
           >
-            <Bell className="size-[25px]" strokeWidth={1.75} />
+            <Bell className="size-[22px] md:size-[25px]" strokeWidth={1.75} />
             {unreadCount > 0 && (
               <span className="bg-brand-magenta absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-semibold text-white">
                 {unreadCount}
@@ -117,8 +142,8 @@ export function AppHeader() {
             )}
           </button>
 
-          {/* User profile icon */}
-          <Link href="/profile" aria-label="Profile">
+          {/* User profile icon — desktop only */}
+          <Link href="/profile" className="hidden lg:block" aria-label="Profile">
             <div className="relative h-[25.23px] w-[25.23px] cursor-pointer">
               <Image
                 src="/assets/icons/User-Icon.svg"
@@ -129,35 +154,15 @@ export function AppHeader() {
             </div>
           </Link>
 
-          {/* Shopping cart */}
+          {/* Shopping cart — always visible */}
           <Link href="/cart" aria-label="Cart">
             <LuShoppingCart
-              className={`cursor-pointer text-[25px] ${
+              className={`cursor-pointer text-[22px] md:text-[25px] ${
                 path === "/cart" ? "text-primary" : ""
               }`}
             />
           </Link>
         </div>
-
-        {/* Mobile hamburger */}
-        <button
-          className="flex h-[18px] w-[24px] flex-col justify-between lg:hidden"
-          onClick={() => setDropdownOpen((prev) => !prev)}
-          aria-label="Toggle menu"
-        >
-          {dropdownOpen ? (
-            <>
-              <span className="block h-[2px] w-full origin-center translate-y-[8px] rotate-45 bg-black" />
-              <span className="block h-[2px] w-full origin-center -translate-y-[8px] -rotate-45 bg-black" />
-            </>
-          ) : (
-            <>
-              <span className="block h-0.5 w-full bg-black" />
-              <span className="block h-0.5 w-full bg-black" />
-              <span className="block h-0.5 w-full bg-black" />
-            </>
-          )}
-        </button>
       </div>
 
       {/* Mobile dropdown */}

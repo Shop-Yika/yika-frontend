@@ -32,14 +32,20 @@ const merchantTabs: TabItem[] = [
  * - Active state is derived from `usePathname()` and matches by `startsWith`
  *   so nested routes (e.g. `/profile/shopper/orders/[id]`) keep the parent
  *   tab highlighted.
+ *
+ * Mobile behavior (per `figma/5193-5040-mobile-order-detail.png`):
+ *   Tabs left-align and scroll horizontally when they overflow the viewport.
+ *   The native horizontal scrollbar is hidden via `.scrollbar-hide` (utility
+ *   shipped by `tw-animate-css`/Tailwind) so the row reads as a clean strip.
+ *   The container itself owns `overflow-x-auto` so swipe/drag still works.
  */
 export function DashboardTabs({ mode }: DashboardTabsProps) {
     const tabs = mode === 'shopper' ? shopperTabs : merchantTabs;
     const pathname = usePathname();
 
     return (
-        <nav className="border-b border-border-default mb-8 overflow-x-auto">
-            <ul className="flex justify-center md:justify-start gap-8 md:gap-14">
+        <nav className="border-b border-border-default mb-6 md:mb-8 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <ul className="flex justify-start gap-6 md:gap-14 min-w-max md:min-w-0">
                 {tabs.map(({ href, label }) => {
                     const isActive = pathname.startsWith(href);
                     return (
