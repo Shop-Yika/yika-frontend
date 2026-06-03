@@ -1,13 +1,6 @@
-import {ReactNode} from 'react';
-import Tabs from '@/components/dashboard/tabs';
-import RentalRequest from "@/components/dashboard/RentalRequest";
+import { ReactNode } from 'react';
+import { DashboardShell } from '@/components/dashboard/DashboardShell';
 
-export default function MerchantLayout({children}: {children: ReactNode}) {
-    return (
-        <>
-            <Tabs mode="merchant" />
-            <div
-            >{children}</div>
-        </>
-    );
+export default function MerchantLayout({ children }: { children: ReactNode }) {
+    return <DashboardShell mode="merchant">{children}</DashboardShell>;
 }
