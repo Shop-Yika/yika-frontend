@@ -32,17 +32,17 @@ export default function RentalRequest() {
         SAMPLE_REQUEST;
 
     return (
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] flex flex-col gap-5 p-6 mt-10">
+        <div className="bg-surface rounded-2xl border border-border-default flex flex-col gap-5 p-6 mt-10">
 
             {/* ── Header: title + action buttons ── */}
             <div className="flex items-start justify-between gap-4">
 
                 {/* Left: title + description */}
                 <div className="min-w-0">
-                    <h1 className="font-bold text-[18px] text-[#111827]">
+                    <h1 className="font-bold text-[18px] text-text-primary">
                         You have a new rental request
                     </h1>
-                    <p className="text-[13px] text-[#6B7280] mt-1">
+                    <p className="text-[13px] text-text-muted mt-1">
                         Approve if your item is available and ready to ship. Once confirmed,
                         you&apos;ll receive packaging instructions.
                     </p>
@@ -56,7 +56,7 @@ export default function RentalRequest() {
                      */}
                     <button
                         type="button"
-                        className="bg-[#8C2D8B] hover:bg-[#7A2679] text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+                        className="bg-brand-magenta hover:bg-[#7A2679] text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
                     >
                         Confirm rental
                     </button>
@@ -67,7 +67,7 @@ export default function RentalRequest() {
                      */}
                     <button
                         type="button"
-                        className="bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#6B7280] text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+                        className="bg-border-subtle hover:bg-border-default text-text-muted text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
                     >
                         Decline
                     </button>
@@ -91,8 +91,8 @@ export default function RentalRequest() {
                 </div>
 
                 <div className="flex flex-col gap-0.5">
-                    <p className="font-semibold text-[14px] text-[#111827]">{renterName}</p>
-                    <p className="text-[12px] text-[#6B7280]">Renter</p>
+                    <p className="font-semibold text-[14px] text-text-primary">{renterName}</p>
+                    <p className="text-[12px] text-text-muted">Renter</p>
                 </div>
             </div>
 
@@ -102,31 +102,31 @@ export default function RentalRequest() {
             <div className="flex flex-wrap gap-5">
 
                 {/* Duration */}
-                <Card className="p-4 bg-[#F9FAFB] border-none shadow-none rounded-xl min-w-[140px]">
-                    <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
+                <Card className="p-4 bg-status-gray-bg border-none shadow-none rounded-xl min-w-[140px]">
+                    <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wide">
                         Duration
                     </p>
-                    <p className="font-bold text-[16px] text-[#111827] mt-1">
+                    <p className="font-bold text-[16px] text-text-primary mt-1">
                         {durationDays} days
                     </p>
                 </Card>
 
                 {/* Due Date */}
-                <Card className="p-4 bg-[#F9FAFB] border-none shadow-none rounded-xl min-w-[140px]">
-                    <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
+                <Card className="p-4 bg-status-gray-bg border-none shadow-none rounded-xl min-w-[140px]">
+                    <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wide">
                         Due Date
                     </p>
-                    <p className="font-bold text-[16px] text-[#111827] mt-1">
+                    <p className="font-bold text-[16px] text-text-primary mt-1">
                         {dueDate}
                     </p>
                 </Card>
 
                 {/* Income */}
-                <Card className="p-4 bg-[#F9FAFB] border-none shadow-none rounded-xl min-w-[140px]">
-                    <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">
+                <Card className="p-4 bg-status-gray-bg border-none shadow-none rounded-xl min-w-[140px]">
+                    <p className="text-[11px] font-semibold text-text-faint uppercase tracking-wide">
                         Income
                     </p>
-                    <p className="font-bold text-[16px] text-[#111827] mt-1">
+                    <p className="font-bold text-[16px] text-text-primary mt-1">
                         ${income.toFixed(2)}
                     </p>
                 </Card>
