@@ -7,8 +7,8 @@ export default function OrderCard({item}: {item: OrderItem}) {
     const {orderNumber, itemCount, sellerHandle, total, orderDate, shopperStatus, imageUrls} = item;
 
     return (
-        <div className="grid grid-cols-subgrid md:col-span-6 justify-items-center md:justify-items-start items-center gap-y-4 rounded-xl border border-[#E5E7EB] bg-white p-4">
-            <div className="relative w-[72px] h-[72px] flex-shrink-0 rounded-2xl overflow-hidden bg-[#F9FAFB]">
+        <div className="grid grid-cols-subgrid md:col-span-6 justify-items-center md:justify-items-start items-center gap-y-4 rounded-xl border border-border-default bg-surface p-4">
+            <div className="relative w-[72px] h-[72px] flex-shrink-0 rounded-2xl overflow-hidden bg-status-gray-bg">
                 <Image
                     alt=""
                     src={imageUrls[0]}
@@ -17,24 +17,24 @@ export default function OrderCard({item}: {item: OrderItem}) {
                 />
             </div>
             <div>
-                <p className="font-semibold text-[20px] text-[#111827]">Order #{orderNumber}</p>
-                <p className="text-center md:text-left text-[16px] text-[#6B7280]">
-                    {itemCount} {itemCount === 1 ? 'item' : 'items'} from <span className="text-[#8C2D8B]">@{sellerHandle}</span>
+                <p className="font-semibold text-[20px] text-text-primary">Order #{orderNumber}</p>
+                <p className="text-center md:text-left text-[16px] text-text-muted">
+                    {itemCount} {itemCount === 1 ? 'item' : 'items'} from <span className="text-brand-magenta">@{sellerHandle}</span>
                 </p>
             </div>
             <div className="justify-self-center text-center">
-                <p className="md:hidden text-[11px] font-semibold tracking-wider uppercase text-[#9CA3AF]">Total</p>
-                <p className="text-[14px] font-medium text-[#111827]">${total.toFixed(2)}</p>
+                <p className="md:hidden text-[11px] font-semibold tracking-wider uppercase text-text-faint">Total</p>
+                <p className="text-[14px] font-medium text-text-primary">${total.toFixed(2)}</p>
             </div>
             <div className="justify-self-center text-center">
-                <p className="md:hidden text-[11px] font-semibold tracking-wider uppercase text-[#9CA3AF]">Order date</p>
-                <p className="text-[14px] text-[#6B7280]">{orderDate}</p>
+                <p className="md:hidden text-[11px] font-semibold tracking-wider uppercase text-text-faint">Order date</p>
+                <p className="text-[14px] text-text-muted">{orderDate}</p>
             </div>
             <div className="flex items-center gap-x-8 md:contents">
                 <StatusBadge status={shopperStatus} type="shopper" />
                 <Link
                     href={`/profile/shopper/orders/${orderNumber}`}
-                    className="justify-self-end"
+                    className="justify-self-end text-text-faint"
                     aria-label={`View order ${orderNumber}`}
                 >
                     <svg
@@ -46,7 +46,7 @@ export default function OrderCard({item}: {item: OrderItem}) {
                     >
                         <path
                             d="M0.5 0.5L6.5 9.95455L0.5 20.5"
-                            stroke="#9CA3AF"
+                            stroke="currentColor"
                             strokeLinecap="round"
                         />
                     </svg>

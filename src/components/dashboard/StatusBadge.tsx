@@ -7,54 +7,54 @@ type BadgeConfig = { label: string; dot: string; badge: string };
 const LISTING_STATUS_CONFIG: Record<ListingStatus, BadgeConfig> = {
     live: {
         label: 'Live',
-        dot:   'bg-[#15803D]',
-        badge: 'border border-[#15803D] bg-[#F0FDF4] text-[#15803D]',
+        dot:   'bg-status-green-dot',
+        badge: 'border border-status-green-border bg-status-green-bg text-status-green-text',
     },
     pending: {
         label: 'Pending',
-        dot:   'bg-[#B45309]',
-        badge: 'border border-[#D97706] bg-[#FFFBEB] text-[#B45309]',
+        dot:   'bg-status-yellow-dot',
+        badge: 'border border-status-yellow-border bg-status-yellow-bg text-status-yellow-text',
     },
     ended: {
         label: 'Listing ended',
-        dot:   'bg-[#9CA3AF]',
-        badge: 'border border-[#E5E7EB] bg-[#F9FAFB] text-[#6B7280]',
+        dot:   'bg-status-gray-dot',
+        badge: 'border border-status-gray-border bg-status-gray-bg text-status-gray-text',
     },
 };
 
 const ORDER_STATUS_CONFIG: Record<OrderStatus, BadgeConfig> = {
     live: {
         label: 'Live',
-        dot:   'bg-[#15803D]',
-        badge: 'border border-[#15803D] bg-[#F0FDF4] text-[#15803D]',
+        dot:   'bg-status-green-dot',
+        badge: 'border border-status-green-border bg-status-green-bg text-status-green-text',
     },
     pending: {
         label: 'Pending',
-        dot:   'bg-[#B45309]',
-        badge: 'border border-[#D97706] bg-[#FFFBEB] text-[#B45309]',
+        dot:   'bg-status-yellow-dot',
+        badge: 'border border-status-yellow-border bg-status-yellow-bg text-status-yellow-text',
     },
     rented: {
         label: 'Rented',
-        dot:   'bg-[#EA580C]',
-        badge: 'border border-[#EA580C] bg-[#FFF7ED] text-[#EA580C]',
+        dot:   'bg-status-orange-dot',
+        badge: 'border border-status-orange-border bg-status-orange-bg text-status-orange-text',
     },
     returned: {
         label: 'Returned',
-        dot:   'bg-[#9CA3AF]',
-        badge: 'border border-[#E5E7EB] bg-[#F9FAFB] text-[#6B7280]',
+        dot:   'bg-status-gray-dot',
+        badge: 'border border-status-gray-border bg-status-gray-bg text-status-gray-text',
     },
 };
 
 const SHOPPER_STATUS_CONFIG: Record<ShopperOrderStatus, BadgeConfig> = {
     Shipped: {
         label: 'Shipped',
-        dot:   'bg-[#8C2D8B]',
-        badge: 'border border-[#8C2D8B] bg-[#F5DBEA] text-[#8C2D8B]',
+        dot:   'bg-status-magenta-dot',
+        badge: 'border border-status-magenta-border bg-status-magenta-bg text-status-magenta-text',
     },
     Delivered: {
         label: 'Delivered',
-        dot:   'bg-[#414E32]',
-        badge: 'border border-[#414E32] bg-[#F8FAE8] text-[#414E32]',
+        dot:   'bg-status-olive-dot',
+        badge: 'border border-status-olive-border bg-status-olive-bg text-status-olive-text',
     },
 };
 

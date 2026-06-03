@@ -15,7 +15,7 @@ export default function DashboardLayout({children}: {children: ReactNode}) {
                         className="w-12 h-12 md:w-20 md:h-20 rounded-full object-cover"
                     />
                     <h1 className="font-semibold text-[1.5rem] md:text-[2.5rem] leading-none mr-0 md:mr-5">
-                        Hey there, <span className="text-[#b361a6]">Tatiana!</span>
+                        Hey there, <span className="text-brand-lavender">Tatiana!</span>
                     </h1>
                     <Modes />
                 </div>

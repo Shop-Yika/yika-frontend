@@ -106,11 +106,11 @@ export function ActiveListingRow({
     editHref?: string;
 }) {
     return (
-        <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[#E5E7EB] bg-white">
+        <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border-default bg-surface">
 
             {/* Left: thumbnail + text */}
             <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-[72px] h-[72px] flex-shrink-0 rounded-xl overflow-hidden bg-[#F9FAFB]">
+                <div className="relative w-[72px] h-[72px] flex-shrink-0 rounded-xl overflow-hidden bg-status-gray-bg">
                     <Image
                         src={item.imageUrl}
                         alt={item.name}
@@ -120,8 +120,8 @@ export function ActiveListingRow({
                 </div>
 
                 <div className="flex flex-col gap-0.5 min-w-0">
-                    <p className="font-semibold text-[14px] text-[#111827] truncate">{item.name}</p>
-                    <p className="text-[12px] text-[#6B7280]">
+                    <p className="font-semibold text-[14px] text-text-primary truncate">{item.name}</p>
+                    <p className="text-[12px] text-text-muted">
                         {item.category} · {item.brand}
                     </p>
                     <p className="text-[13px] text-[#374151] font-medium">
@@ -141,7 +141,7 @@ export function ActiveListingRow({
                         {editHref ? (
                             <Link
                                 href={editHref}
-                                className="text-[#9CA3AF] hover:text-[#6B7280] transition-colors p-1"
+                                className="text-text-faint hover:text-text-muted transition-colors p-1"
                                 aria-label="Edit listing"
                             >
                                 <MdOutlineEdit size={18} />
@@ -150,7 +150,7 @@ export function ActiveListingRow({
                             <button
                                 type="button"
                                 onClick={() => onEdit?.(item.id)}
-                                className="text-[#9CA3AF] hover:text-[#6B7280] transition-colors p-1"
+                                className="text-text-faint hover:text-text-muted transition-colors p-1"
                                 aria-label="Edit listing"
                             >
                                 <MdOutlineEdit size={18} />
@@ -160,7 +160,7 @@ export function ActiveListingRow({
                         <button
                             type="button"
                             onClick={() => onDelete?.(item.id)}
-                            className="text-[#9CA3AF] hover:text-red-400 transition-colors p-1"
+                            className="text-text-faint hover:text-red-400 transition-colors p-1"
                             aria-label="Delete listing"
                         >
                             <RiDeleteBinLine size={18} />
@@ -190,11 +190,11 @@ export function ActiveListingRow({
  */
 export function PastListingCard({ item }: { item: ListingItem }) {
     return (
-        <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[#E5E7EB] bg-white">
+        <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border-default bg-surface">
 
             {/* Left: thumbnail + text */}
             <div className="flex items-center gap-3 min-w-0">
-                <div className="relative w-[72px] h-[72px] flex-shrink-0 rounded-xl overflow-hidden bg-[#F9FAFB]">
+                <div className="relative w-[72px] h-[72px] flex-shrink-0 rounded-xl overflow-hidden bg-status-gray-bg">
                     <Image
                         src={item.imageUrl}
                         alt={item.name}
@@ -204,8 +204,8 @@ export function PastListingCard({ item }: { item: ListingItem }) {
                 </div>
 
                 <div className="flex flex-col gap-0.5 min-w-0">
-                    <p className="font-semibold text-[14px] text-[#111827] truncate">{item.name}</p>
-                    <p className="text-[12px] text-[#6B7280]">
+                    <p className="font-semibold text-[14px] text-text-primary truncate">{item.name}</p>
+                    <p className="text-[12px] text-text-muted">
                         {item.category} · {item.brand}
                     </p>
                     <p className="text-[13px] text-[#374151] font-medium">
@@ -239,7 +239,7 @@ export function OrderRow({ item }: { item: OrderItem }) {
     const inner = (
         <div
             className={cn(
-                "grid items-center gap-4 py-4 border-b border-[#F3F4F6] last:border-0",
+                "grid items-center gap-4 py-4 border-b border-border-subtle last:border-0",
                 "grid-cols-[1fr_auto_auto_auto_auto]", // ORDER | TOTAL | DUE DATE | STATUS | CHEVRON
             )}
         >
@@ -252,7 +252,7 @@ export function OrderRow({ item }: { item: OrderItem }) {
                         <div
                             key={i}
                             className={cn(
-                                "absolute rounded-lg overflow-hidden border-2 border-white bg-[#F9FAFB]",
+                                "absolute rounded-lg overflow-hidden border-2 border-surface bg-status-gray-bg",
                                 "w-[44px] h-[44px]",
                                 i === 0 ? "top-0 left-0 z-10" : "bottom-0 right-0 z-0"
                             )}
@@ -262,29 +262,29 @@ export function OrderRow({ item }: { item: OrderItem }) {
                     ))}
                     {/* Single image — no stacking needed */}
                     {item.imageUrls.length === 1 && (
-                        <div className="absolute inset-0 rounded-lg overflow-hidden bg-[#F9FAFB]">
+                        <div className="absolute inset-0 rounded-lg overflow-hidden bg-status-gray-bg">
                             <Image src={item.imageUrls[0]} alt="" fill className="object-cover" />
                         </div>
                     )}
                 </div>
 
                 <div className="flex flex-col gap-0.5 min-w-0">
-                    <p className="font-semibold text-[14px] text-[#111827] truncate">
+                    <p className="font-semibold text-[14px] text-text-primary truncate">
                         Order #{item.orderNumber}
                     </p>
-                    <p className="text-[12px] text-[#6B7280]">
+                    <p className="text-[12px] text-text-muted">
                         {item.itemCount} {item.itemCount === 1 ? "item" : "items"} · {item.renterName}
                     </p>
                 </div>
             </div>
 
             {/* TOTAL */}
-            <p className="text-[14px] font-medium text-[#111827] text-right whitespace-nowrap">
+            <p className="text-[14px] font-medium text-text-primary text-right whitespace-nowrap">
                 ${item.total.toFixed(2)}
             </p>
 
             {/* DUE DATE */}
-            <p className="text-[14px] text-[#6B7280] whitespace-nowrap hidden sm:block">
+            <p className="text-[14px] text-text-muted whitespace-nowrap hidden sm:block">
                 {item.dueDate}
             </p>
 
@@ -294,7 +294,7 @@ export function OrderRow({ item }: { item: OrderItem }) {
             </div>
 
             {/* CHEVRON */}
-            <ChevronRight className="w-4 h-4 text-[#9CA3AF] flex-shrink-0" />
+            <ChevronRight className="w-4 h-4 text-text-faint flex-shrink-0" />
         </div>
     );
 
@@ -323,11 +323,11 @@ export function OrderTable({ orders }: { orders: OrderItem[] }) {
     return (
         <div className="flex flex-col">
             {/* Column headers */}
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 pb-3 border-b border-[#E5E7EB]">
-                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase">Order</p>
-                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase text-right">Total</p>
-                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase hidden sm:block">Due Date</p>
-                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase">Status</p>
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 pb-3 border-b border-border-default">
+                <p className="text-[11px] font-semibold tracking-wider text-text-faint uppercase">Order</p>
+                <p className="text-[11px] font-semibold tracking-wider text-text-faint uppercase text-right">Total</p>
+                <p className="text-[11px] font-semibold tracking-wider text-text-faint uppercase hidden sm:block">Due Date</p>
+                <p className="text-[11px] font-semibold tracking-wider text-text-faint uppercase">Status</p>
                 <div className="w-4" /> {/* chevron column spacer */}
             </div>
 

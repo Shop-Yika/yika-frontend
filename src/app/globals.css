@@ -46,9 +46,123 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* ─── Yika dashboard design tokens ───────────────────────────────── */
+  /* Source of truth: src/lib/design-tokens.ts                          */
+
+  /* Brand */
+  --color-brand-magenta: var(--brand-magenta);
+  --color-brand-lavender: var(--brand-lavender);
+  --color-brand-footer: var(--brand-footer);
+
+  /* Surfaces */
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+
+  /* Borders (nested namespace via dotted names) */
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+
+  /* Text (nested namespace — usable as `text-text-primary` etc.) */
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  /* Status pills — green */
+  --color-status-green-dot: var(--status-green-dot);
+  --color-status-green-border: var(--status-green-border);
+  --color-status-green-bg: var(--status-green-bg);
+  --color-status-green-text: var(--status-green-text);
+
+  /* Status pills — olive */
+  --color-status-olive-dot: var(--status-olive-dot);
+  --color-status-olive-border: var(--status-olive-border);
+  --color-status-olive-bg: var(--status-olive-bg);
+  --color-status-olive-text: var(--status-olive-text);
+
+  /* Status pills — magenta */
+  --color-status-magenta-dot: var(--status-magenta-dot);
+  --color-status-magenta-border: var(--status-magenta-border);
+  --color-status-magenta-bg: var(--status-magenta-bg);
+  --color-status-magenta-text: var(--status-magenta-text);
+
+  /* Status pills — yellow */
+  --color-status-yellow-dot: var(--status-yellow-dot);
+  --color-status-yellow-border: var(--status-yellow-border);
+  --color-status-yellow-bg: var(--status-yellow-bg);
+  --color-status-yellow-text: var(--status-yellow-text);
+
+  /* Status pills — orange */
+  --color-status-orange-dot: var(--status-orange-dot);
+  --color-status-orange-border: var(--status-orange-border);
+  --color-status-orange-bg: var(--status-orange-bg);
+  --color-status-orange-text: var(--status-orange-text);
+
+  /* Status pills — gray */
+  --color-status-gray-dot: var(--status-gray-dot);
+  --color-status-gray-border: var(--status-gray-border);
+  --color-status-gray-bg: var(--status-gray-bg);
+  --color-status-gray-text: var(--status-gray-text);
 }
 
 :root {
+  /* ─── Yika dashboard design tokens ───────────────────────────────── */
+  /* Mirror of src/lib/design-tokens.ts — keep in sync.                  */
+
+  /* Brand */
+  --brand-magenta: #8C2D8B;
+  --brand-lavender: #B361A6;
+  --brand-footer: #672862;
+
+  /* Surfaces */
+  --page: #FFFDF7;
+  --surface: #FFFFFF;
+
+  /* Borders */
+  --border-default: #E5E7EB;
+  --border-subtle: #F3F4F6;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-muted: #6B7280;
+  --text-faint: #9CA3AF;
+
+  /* Status pills — green (Live / Delivered) */
+  --status-green-dot: #15803D;
+  --status-green-border: #15803D;
+  --status-green-bg: #F0FDF4;
+  --status-green-text: #15803D;
+
+  /* Status pills — olive (Delivered, shopper orders) */
+  --status-olive-dot: #414E32;
+  --status-olive-border: #414E32;
+  --status-olive-bg: #F8FAE8;
+  --status-olive-text: #414E32;
+
+  /* Status pills — magenta (Shipped) */
+  --status-magenta-dot: #8C2D8B;
+  --status-magenta-border: #8C2D8B;
+  --status-magenta-bg: #F5DBEA;
+  --status-magenta-text: #8C2D8B;
+
+  /* Status pills — yellow (Pending) */
+  --status-yellow-dot: #B45309;
+  --status-yellow-border: #D97706;
+  --status-yellow-bg: #FFFBEB;
+  --status-yellow-text: #B45309;
+
+  /* Status pills — orange (Rented) */
+  --status-orange-dot: #EA580C;
+  --status-orange-border: #EA580C;
+  --status-orange-bg: #FFF7ED;
+  --status-orange-text: #EA580C;
+
+  /* Status pills — gray (Returned / Ended) */
+  --status-gray-dot: #9CA3AF;
+  --status-gray-border: #E5E7EB;
+  --status-gray-bg: #F9FAFB;
+  --status-gray-text: #6B7280;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.13 0.028 261.692);
@@ -124,7 +238,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Satoshi', sans-serif;
-    background-color: #FFFDF7;
+    background-color: var(--page);
 
     margin: 0;
     padding: 0;
