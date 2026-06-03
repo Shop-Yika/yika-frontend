@@ -23,7 +23,7 @@ export default function DropdownNavbar({ isOpen }: DropdownNavbarProps) {
   if (!isMobile || !isOpen) return null;
 
   return (
-    <div className="fixed top-[76px] left-0 right-0 w-screen h-auto bg-[#FFFDF7] z-[10000] border-t border-black/50">
+    <div className="fixed top-[76px] left-0 right-0 w-screen h-auto bg-page z-[10000] border-t border-black/50">
       <Link href="/public">
         <div className="flex items-center justify-center px-8 h-[62px] border-b border-black/50 text-[16.65px] font-satoshi font-medium uppercase">
           Home
