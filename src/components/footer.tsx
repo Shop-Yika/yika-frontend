@@ -57,9 +57,9 @@ const Footer = () => {
 
             {/* Footer Links */}
             <div className="absolute bottom-[58px] left-[69px] flex gap-10 text-[14px] font-medium tracking-[-0.02em]">
-              <Link href="/public"><p>Privacy Policy</p></Link>
-              <Link href="/public"><p>Data Privacy</p></Link>
-              <Link href="/public"><p>Terms of Service</p></Link>
+              <Link href="/privacy-policy"><p>Privacy Policy</p></Link>
+              <Link href="/data-privacy"><p>Data Privacy</p></Link>
+              <Link href="/terms"><p>Terms of Service</p></Link>
             </div>
 
             {/* Copyright */}
@@ -114,9 +114,9 @@ const Footer = () => {
 
           {/* Links */}
           <div className="flex flex-col gap-2 text-[15px] font-medium">
-            <Link href="/public"><p>Privacy Policy</p></Link>
-            <Link href="/public"><p>Data Privacy</p></Link>
-            <Link href="/public"><p>Terms of Service</p></Link>
+            <Link href="/privacy-policy"><p>Privacy Policy</p></Link>
+            <Link href="/data-privacy"><p>Data Privacy</p></Link>
+            <Link href="/terms"><p>Terms of Service</p></Link>
           </div>
 
           {/* Copyright */}

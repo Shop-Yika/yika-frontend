@@ -67,8 +67,6 @@ async function fetchFromAWS<T>(
     const baseUrl = AWS_API_URL.endsWith('/') ? AWS_API_URL.slice(0, -1) : AWS_API_URL;
     const url = `${baseUrl}${path}`;
 
-    console.log('📡 Fetching from AWS:', url);
-
     const response = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -124,13 +122,24 @@ class ApiClient {
             });
         }
         const endpoint = `/inventory${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-        const response = await this.request<ApiResponse<InventoryItem[]>>(endpoint);
-        return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await this.request<any>(endpoint);
+        // Handle both { data: [...] } and [...] response shapes, then normalize
+        // each raw AWS item so field names match InventoryItem throughout the app.
+        const raw: unknown[] = Array.isArray(response)
+            ? response
+            : Array.isArray(response?.data)
+                ? response.data
+                : [];
+        return raw.map((item, i) => normalizeItem(item, i));
     }
 
     async getProductById(id: string): Promise<InventoryItem> {
-        const response = await this.request<ApiResponse<InventoryItem>>(`/inventory/${id}`);
-        return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await this.request<any>(`/inventory/${id}`);
+        // Unwrap { data: {...} } if present, then normalize AWS field names
+        const raw: unknown = response?.data ?? response;
+        return normalizeItem(raw, 0);
     }
 
     async getCategories(): Promise<string[]> {
@@ -179,9 +188,12 @@ export async function getInventory(filters?: FilterOptions): Promise<InventoryIt
 export async function getProductById(id: string): Promise<InventoryItem> {
     if (typeof window === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return fetchFromAWS<InventoryItem>(`/inventory/${id}`, (raw: any) =>
-            normalizeItem(raw, 0)
-        );
+        return fetchFromAWS<InventoryItem>(`/inventory/${id}`, (raw: any) => {
+            // AWS returns { item: { ...fields }, images: [ ...s3Urls ] }
+            const item   = raw?.item   ?? raw;
+            const images = raw?.images ?? [];
+            return normalizeItem({ ...item, images }, 0);
+        });
     }
     return apiClient.getProductById(id);
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { InventoryItem, FilterOptions } from '@/lib/api/types';
 import { apiClient } from '@/lib/api/inventory';
 import { applyFiltersAndSort } from '@/lib/utils';
+// apiClient.getInventory() handles normalization centrally — no inline mapping here
 import { useLikedItems } from '@/lib/hooks/useLikedItems';
 import FilterSidebar from '../filters/FilterSidebar';
 import FilterButton from '../filters/FilterButton';
@@ -38,16 +39,10 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
         }
     }, [initialProducts]);
 
-    // Apply filters only when appliedFilters change (when button is clicked)
+    // Apply filters only when appliedFilters change (when "Show Results" is clicked)
     useEffect(() => {
         if (products && products.length > 0) {
-            console.log('🔍 Applying filters to', products.length, 'products');
-            console.log('🔍 Applied filters:', appliedFilters);
-
-            const filtered = applyFiltersAndSort(products, appliedFilters);
-
-            console.log('✅ Filtered result:', filtered.length, 'products');
-            setFilteredProducts(filtered);
+            setFilteredProducts(applyFiltersAndSort(products, appliedFilters));
         } else {
             setFilteredProducts([]);
         }
@@ -57,69 +52,12 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
         try {
             setLoading(true);
             setError(null);
-
-            console.log('🔄 Fetching products from API...');
-
-            const response = await fetch('/api/inventory');
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const rawData = await response.json();
-            let items: any[] = [];
-
-            if (Array.isArray(rawData)) {
-                items = rawData;
-            } else if (rawData.data && Array.isArray(rawData.data)) {
-                items = rawData.data;
-            } else {
-                throw new Error('Unexpected API response format');
-            }
-
-            // Map AWS fields to frontend fields
-            const mappedProducts: InventoryItem[] = items.map((item) => {
-                const totalStock = item.sizes && Array.isArray(item.sizes)
-                    ? item.sizes.reduce((sum: number, s: any) => sum + (s.in_stock || 0), 0)
-                    : 0;
-
-                const sizeStrings = item.sizes && Array.isArray(item.sizes)
-                    ? item.sizes.map((s: any) => s.size).filter(Boolean)
-                    : [];
-
-                const occasion = Array.isArray(item.occasion)
-                    ? item.occasion[0]
-                    : item.occasion;
-
-                return {
-                    id: item.ItemID || item.id,
-                    name: item.ItemName || item.name,
-                    description: item.description || `${item.ItemName || item.name} from ${item.brand || 'our collection'}`,
-                    price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
-                    category: item.category || 'Uncategorized',
-                    brand: item.brand || 'Unknown',
-                    imageUrl: item.thumbnail || item.imageUrl || item.images?.[0] || '',
-                    images: item.images || (item.thumbnail ? [item.thumbnail] : []),
-                    stock: totalStock,
-                    gender: item.gender || 'Women',
-                    occasion: occasion,
-                    color: item.color || '',
-                    sizes: sizeStrings,
-                    availability: item.availability !== undefined ? item.availability : totalStock > 0,
-                    tags: item.tags || [],
-                    rating: item.rating,
-                    reviews: item.reviews,
-                    createdAt: item.createdAt,
-                    updatedAt: item.updatedAt,
-                };
-            });
-
-            console.log('✅ Total mapped products:', mappedProducts.length);
-            setProducts(mappedProducts);
-            setFilteredProducts(mappedProducts);
-
+            // apiClient.getInventory() routes through /api/inventory and runs
+            // normalizeItem — single source of truth for AWS field mapping.
+            const products = await apiClient.getInventory();
+            setProducts(products);
+            setFilteredProducts(products);
         } catch (err) {
-            console.error('❌ Error fetching products:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch products');
             setProducts([]);
             setFilteredProducts([]);
@@ -130,19 +68,15 @@ export default function ShopSection({ products: initialProducts }: ShopSectionPr
 
     // Update pending filters (doesn't apply yet)
     const handleFilterChange = (newFilters: Partial<FilterOptions>) => {
-        console.log('🔧 Filter changed (pending):', newFilters);
         setPendingFilters(prev => ({ ...prev, ...newFilters }));
     };
 
-    // Apply filters when "Show Results" button is clicked
     const handleApplyFilters = () => {
-        console.log('✅ Applying pending filters:', pendingFilters);
         setAppliedFilters(pendingFilters);
-        setShowSidebar(false); // Close mobile sidebar after applying
+        setShowSidebar(false);
     };
 
     const handleProductClick = (productId: string) => {
-        console.log('🔗 Navigating to product:', productId);
         router.push(`/product/${productId}`);
     };
 

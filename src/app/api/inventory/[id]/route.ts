@@ -20,9 +20,6 @@ export async function GET(
         const baseUrl = AWS_API_URL.endsWith('/') ? AWS_API_URL.slice(0, -1) : AWS_API_URL;
         const url = `${baseUrl}/inventory/${id}`;
 
-        console.log('📡 Fetching product from AWS:', url);
-        console.log('📋 Product ID:', id);
-
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -30,8 +27,6 @@ export async function GET(
             },
             cache: 'no-store',
         });
-
-        console.log('📊 AWS Response Status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -51,13 +46,16 @@ export async function GET(
         }
 
         const data = await response.json();
-        console.log('✅ Product data received from AWS');
 
-        if (data.data) {
-            return NextResponse.json(data);
-        } else {
-            return NextResponse.json({ data });
-        }
+        // AWS returns { item: { ...fields }, images: [ ...s3Urls ] }
+        // Flatten into { data: { ...fields, images } } so the client's
+        // normalizeItem() can read all fields directly off the object.
+        const { item, images = [] } = data;
+        const normalized = item
+            ? { ...item, images }
+            : { ...data, images: data.images ?? [] };
+
+        return NextResponse.json({ data: normalized });
 
     } catch (error) {
         console.error('❌ Error in product API route:', error);

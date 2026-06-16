@@ -21,8 +21,6 @@ export async function GET(request: NextRequest) {
         // Build URL to AWS API
         const url = `${AWS_API_URL}/inventory${queryString ? `?${queryString}` : ''}`;
 
-        console.log('📡 Fetching from AWS:', url);
-
         // Make request to AWS API (server-side only)
         const response = await fetch(url, {
             method: 'GET',
@@ -32,8 +30,6 @@ export async function GET(request: NextRequest) {
                 // Example: 'x-api-key': process.env.AWS_API_KEY,
             },
         });
-
-        console.log('✅ AWS Response Status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
