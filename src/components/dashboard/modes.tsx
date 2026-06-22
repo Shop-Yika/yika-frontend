@@ -29,7 +29,7 @@ export default function Modes() {
     const orderedModes = [...modes.filter(({modeType}) => modeType === activeMode), ...modes.filter(({modeType}) => modeType !== activeMode)];
 
     return (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex justify-center flex-wrap gap-3">
             {orderedModes.map(({modeType, activeText, inactiveText}) => {
                 const href = `/profile/${modeType}`;
                 const isActive = pathname.startsWith(href);

@@ -38,6 +38,7 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
     const {orderId} = await params;
     const currentStep = 3;
     const progressWidth = currentStep === steps.length ? 100 : ((currentStep - 0.5) / steps.length) * 100;
+    const progressHeight = (currentStep - 1) * 33;
     const formatter = new Intl.NumberFormat('en-CA', {style: 'currency', currency: 'CAD'});
     const totalAmount = orderItems.reduce((sum, {quantity, unitPrice}) => sum + quantity * unitPrice, 0);
 
@@ -80,15 +81,15 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
                     </div>
 
                     {/* Mobile: vertical timeline */}
-                    <div aria-hidden="true" className="md:hidden absolute left-5 top-5 bottom-5 w-0.5 bg-[#E5E7EB]" />
-                    <div aria-hidden="true" className="md:hidden absolute left-5 top-5 w-0.5 bg-[#111827]" style={{height: `${progressWidth}%`}} />
+                    <div aria-hidden="true" className="md:hidden absolute left-6 top-px bottom-0 w-0.5 bg-[#E5E7EB]" />
+                    <div aria-hidden="true" className="md:hidden absolute left-6 top-px w-0.5 bg-[#111827]" style={{height: `${progressHeight}%`}} />
 
-                    <ul className="flex flex-col gap-6 md:grid md:grid-cols-4 md:gap-4 md:text-center">
+                    <ul className="flex flex-col gap-15 md:grid md:grid-cols-4 md:gap-4 md:text-center mt-10 md:mt-0">
                         {steps.map((step, index) => {
                             const Icon = step.Icon;
                             return (
                                 <li key={step.label} className="flex items-center gap-4 md:flex-col md:items-center md:gap-y-3">
-                                    <div className="relative z-10 flex-shrink-0">
+                                    <div className="relative z-10 shrink-0">
                                         <Icon completed={index < currentStep} />
                                     </div>
                                     <div>
@@ -105,7 +106,7 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
             {/* Shipment details */}
             <section className="border border-[#E5E7EB] rounded-xl py-6 px-4 md:px-8 mb-4 md:mb-7.5">
                 <h2 className="font-bold text-[1.25rem] text-[#111827] mb-1">Shipment Details</h2>
-                <dl className="text-[0.875rem] text-[#6B7280] mb-6">
+                <dl className="text-[0.875rem] text-[#6B7280] border-b border-[#E5E7EB] pb-4 mb-4">
                     <div className="flex gap-1 mb-1">
                         <dt>Carrier:</dt>
                         <dd className="text-[#111827]">FedEx</dd>
@@ -128,7 +129,7 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
                 <h2 className="font-bold text-[1.25rem] text-[#111827] mb-4">Order Information</h2>
 
                 {/* Mobile: stacked card per item */}
-                <div className="md:hidden divide-y divide-[#E5E7EB]">
+                <div className="md:hidden divide-y divide-[#E5E7EB] border-b border-[#E5E7EB]">
                     {orderItems.map(({product, sku, quantity, unitPrice, status}) => (
                         <div key={sku} className="py-4">
                             <div className="flex justify-between items-start mb-1">
@@ -142,7 +143,7 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
                             </div>
                             {status === 'Delivered' && (
                                 <div className="mt-3">
-                                    <button className="bg-[#8C2D8B] text-white text-[0.875rem] font-medium rounded-sm px-6 py-1.5">
+                                    <button className="bg-[#8C2D8B] text-white text-[0.875rem] font-medium rounded-sm cursor-pointer px-6 py-1.5">
                                         Return
                                     </button>
                                 </div>
@@ -185,12 +186,12 @@ export default async function OrderDetailsPage({params}: {params: Promise<{order
                     </tbody>
                 </table>
 
-                <dl className="mt-4 border-t border-[#E5E7EB] pt-4">
-                    <div className="flex justify-between">
+                <dl className="mt-4">
+                    <div className="flex justify-between border-t md:border-t-0 border-[#E5E7EB] pt-3 md:pt-0">
                         <dt className="font-bold text-[#111827]">Total Amount:</dt>
                         <dd className="font-bold text-[#111827]">{formatter.format(totalAmount)}</dd>
                     </div>
-                    <div className="flex justify-between mt-4 mb-3">
+                    <div className="flex justify-between border-t md:border-t-0 border-[#E5E7EB] pt-4 md:pt-0 mt-4 mb-3">
                         <dt className="text-[#6B7280]">Order Date:</dt>
                         <dd>November 19, 2025</dd>
                     </div>

@@ -48,17 +48,17 @@ export default function Tabs({mode}: TabsProps) {
 
     const getClassName = (href: string) => {
         const isActive = pathname.startsWith(href);
-        return isActive ? 'font-bold underline underline-offset-10 decoration-3' : 'opacity-70';
+        return isActive ? 'font-bold underline underline-offset-6 md:underline-offset-10 decoration-3' : 'opacity-70';
     };
 
     return (
-        <nav className="border-b-[3px]">
-            <ul className="flex flex-wrap gap-8 leading-none">
+        <nav className="border-b-0 md:border-b-[3px] overflow-x-auto md:overflow-x-visible">
+            <ul className="flex justify-center md:justify-start gap-6 md:gap-14 leading-none">
                 {tabs.map(({href, label}) => (
                     <li key={href}>
                         <Link
                             href={href}
-                            className={`${getClassName(href)} block py-2`}
+                            className={`${getClassName(href)} block whitespace-nowrap py-2`}
                         >
                             {label}
                         </Link>
