@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { InventoryItem } from '@/lib/api/types';
 import { useLikedItems } from '@/lib/hooks/useLikedItems';
+import { useCart } from '@/lib/hooks/useCart';
 import { apiClient } from '@/lib/api/inventory';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -29,6 +31,8 @@ export default function ProductPage() {
     const [totalPrice,  setTotalPrice]  = useState(0);
     const [dateError,   setDateError]   = useState<string | null>(null);
 
+    const { data: session } = useSession();
+    const { addItem } = useCart();
     const { toggleLike, isLiked } = useLikedItems();
 
     // ── Fetch product using the dedicated /api/inventory/:id endpoint ──────────
@@ -77,12 +81,35 @@ export default function ProductPage() {
 
     const handleAddToCart = () => {
         if (!validateDates()) return;
-        setShowLoginPrompt(true);
+        if (!session?.user) { setShowLoginPrompt(true); return; }
+        addItem({
+            productId:   product!.id,
+            name:        product!.name,
+            brand:       product!.brand,
+            imageUrl:    product!.imageUrl,
+            pricePerDay: product!.price,
+            startDate:   startDate!.toISOString(),
+            endDate:     endDate!.toISOString(),
+            rentalDays,
+            totalPrice,
+        });
     };
 
     const handleRentNow = () => {
         if (!validateDates()) return;
-        setShowLoginPrompt(true);
+        if (!session?.user) { setShowLoginPrompt(true); return; }
+        addItem({
+            productId:   product!.id,
+            name:        product!.name,
+            brand:       product!.brand,
+            imageUrl:    product!.imageUrl,
+            pricePerDay: product!.price,
+            startDate:   startDate!.toISOString(),
+            endDate:     endDate!.toISOString(),
+            rentalDays,
+            totalPrice,
+        });
+        router.push('/cart');
     };
 
     // ── Loading state ──────────────────────────────────────────────────────────
@@ -435,9 +462,11 @@ export default function ProductPage() {
                         </button>
                     </div>
 
-                    <p className="text-xs text-gray-400 text-center">
-                        Sign in to add items to your cart and checkout
-                    </p>
+                    {!session?.user && (
+                        <p className="text-xs text-gray-400 text-center">
+                            Sign in to add items to your cart and checkout
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
