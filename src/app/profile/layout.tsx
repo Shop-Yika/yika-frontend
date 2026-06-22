@@ -7,7 +7,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     // TODO: restore redirect once dev accounts are set up.
     // if (!session?.user) redirect('/auth/login');
     const session = await auth();
-    const { name = 'Dev User', image = undefined } = session?.user ?? {};
+    const { name = 'Dev Users', image = undefined } = session?.user ?? {};
 
     // Use the first part of the name as the greeting (username from AWS backend)
     const firstName = name?.split(' ')[0] ?? 'there';
