@@ -9,9 +9,8 @@ import { useLikedItems } from '@/lib/hooks/useLikedItems';
 import { useCart } from '@/lib/hooks/useCart';
 import { apiClient } from '@/lib/api/inventory';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, differenceInDays } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
 
 export default function ProductPage() {
     const params    = useParams();
@@ -25,11 +24,13 @@ export default function ProductPage() {
     const [showLoginPrompt,  setShowLoginPrompt]  = useState(false);
 
     // Rental dates
-    const [startDate,   setStartDate]   = useState<Date | undefined>(undefined);
-    const [endDate,     setEndDate]     = useState<Date | undefined>(undefined);
-    const [rentalDays,  setRentalDays]  = useState(0);
-    const [totalPrice,  setTotalPrice]  = useState(0);
-    const [dateError,   setDateError]   = useState<string | null>(null);
+    const [dateRange,  setDateRange]  = useState<DateRange | undefined>(undefined);
+    const [rentalDays, setRentalDays] = useState(0);
+    const [totalPrice, setTotalPrice] = useState(0);
+    const [dateError,  setDateError]  = useState<string | null>(null);
+
+    const startDate = dateRange?.from;
+    const endDate   = dateRange?.to;
 
     const { data: session } = useSession();
     const { addItem } = useCart();
@@ -59,15 +60,15 @@ export default function ProductPage() {
 
     // ── Recalculate price when dates change ────────────────────────────────────
     useEffect(() => {
-        if (startDate && endDate && product) {
-            const days = differenceInDays(endDate, startDate) + 1;
+        if (dateRange?.from && dateRange?.to && product) {
+            const days = differenceInDays(dateRange.to, dateRange.from) + 1;
             setRentalDays(days);
             setTotalPrice(product.price * days);
         } else {
             setRentalDays(0);
             setTotalPrice(0);
         }
-    }, [startDate, endDate, product]);
+    }, [dateRange, product]);
 
     // ── Cart / rent actions ────────────────────────────────────────────────────
     const validateDates = (): boolean => {
@@ -340,107 +341,94 @@ export default function ProductPage() {
 
                     {/* Rental date picker */}
                     <div className="mb-6 border-t pt-6">
-                        <h3 className="font-semibold mb-4">Select Rental Dates</h3>
+                        <h3 className="font-semibold mb-1">Select Rental Dates</h3>
+                        <p className="text-xs text-gray-400 mb-4">Minimum 4-day rental</p>
 
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            {/* Start date */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <button className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 hover:border-gray-400 bg-white transition-colors">
-                                            {startDate ? (
-                                                <span className="text-gray-900 text-sm">{format(startDate, 'PPP')}</span>
-                                            ) : (
-                                                <span className="text-gray-400 text-sm">Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="w-4 h-4 text-gray-400" />
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={startDate}
-                                            onSelect={(date) => {
-                                                setStartDate(date);
-                                                setEndDate(undefined);
-                                                setDateError(null);
-                                            }}
-                                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                        {/* Calendar + summary side by side */}
+                        <div className="flex flex-col xl:flex-row gap-6 xl:items-stretch">
+
+                            {/* Inline range calendar */}
+                            <div className="border border-gray-200 rounded-lg overflow-hidden w-full xl:w-auto xl:flex-shrink-0 xl:[--cell-size:--spacing(17)]">
+                                <Calendar
+                                    mode="range"
+                                    selected={dateRange}
+                                    onSelect={(range) => {
+                                        setDateRange(range);
+                                        setDateError(null);
+                                    }}
+                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                    numberOfMonths={1}
+                                    className="p-5 w-full"
+                                    classNames={{
+                                        month: 'flex w-full flex-col gap-4',
+                                        table: 'w-full border-collapse',
+                                        week: 'mt-2 flex w-full gap-1',
+                                        weekdays: 'flex gap-1',
+                                        weekday: 'flex-1 rounded-md text-[0.75rem] font-semibold text-[#8A85A0] select-none',
+                                        day: 'group/day relative aspect-square h-full w-full p-0 text-center select-none flex-1',
+                                    }}
+                                    modifiers={{
+                                        range_end_disabled: (date) => {
+                                            if (!dateRange?.from || dateRange?.to) return false;
+                                            const min = new Date(dateRange.from);
+                                            min.setDate(min.getDate() + 3);
+                                            return date > dateRange.from && date < min;
+                                        },
+                                    }}
+                                    modifiersClassNames={{
+                                        range_end_disabled: 'opacity-40 cursor-not-allowed',
+                                    }}
+                                />
                             </div>
 
-                            {/* End date */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    End Date <span className="text-xs text-gray-400 font-normal">(4-day min.)</span>
-                                </label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            disabled={!startDate}
-                                            className="w-full flex items-center justify-between px-4 py-3 border border-gray-300 hover:border-gray-400 bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {endDate ? (
-                                                <span className="text-gray-900 text-sm">{format(endDate, 'PPP')}</span>
-                                            ) : (
-                                                <span className="text-gray-400 text-sm">Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="w-4 h-4 text-gray-400" />
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={endDate}
-                                            onSelect={(date) => {
-                                                setEndDate(date);
-                                                setDateError(null);
-                                            }}
-                                            disabled={(date) => {
-                                                if (!startDate) return true;
-                                                const min = new Date(startDate);
-                                                min.setDate(min.getDate() + 3); // +3 → 4-day minimum
-                                                return date < min;
-                                            }}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                            {/* Rental summary — only shown when dates are selected */}
+                            {startDate && endDate ? (
+                                <div className="flex-1 bg-[#8C2D8B]/10 border border-[#8c2d8b] rounded-lg p-4">
+                                    <p className="text-sm font-semibold text-[#8C2D8B] mb-3">Rental Summary</p>
+                                    <div className="flex justify-between items-center mb-2 text-sm">
+                                        <span className="text-gray-600">Start</span>
+                                        <span className="font-medium">{format(startDate, 'MMM d, yyyy')}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-2 text-sm">
+                                        <span className="text-gray-600">End</span>
+                                        <span className="font-medium">{format(endDate, 'MMM d, yyyy')}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-2 text-sm">
+                                        <span className="text-gray-600">Duration</span>
+                                        <span className="font-medium">{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-4 text-sm">
+                                        <span className="text-gray-600">Daily rate</span>
+                                        <span className="font-medium">CAD$ {product.price.toFixed(2)}</span>
+                                    </div>
+                                    <div className="border-t border-[#8c2d8b] pt-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-semibold text-gray-900">Total</span>
+                                            <span className="text-xl font-bold text-[#8C2D8B]">CAD$ {totalPrice.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => { setDateRange(undefined); setDateError(null); }}
+                                        className="mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        Clear dates
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center text-sm text-gray-400 text-center py-8">
+                                    Select your start and end dates to see the rental total
+                                </div>
+                            )}
                         </div>
 
-                        {/* Inline date error (replaces alert()) */}
+                        {/* Inline date error */}
                         {dateError && (
-                            <p role="alert" className="text-sm text-red-600 mb-4 flex items-center gap-1.5">
+                            <p role="alert" className="text-sm text-red-600 mt-4 flex items-center gap-1.5">
                                 <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                 </svg>
                                 {dateError}
                             </p>
-                        )}
-
-                        {/* Rental summary */}
-                        {startDate && endDate && (
-                            <div className="bg-[#8C2D8B]/10 border border-[#8c2d8b] p-4 mb-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm text-gray-700">Rental Period:</span>
-                                    <span className="font-semibold">{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                                    <span>Daily Rate:</span>
-                                    <span>CAD$ {product.price.toFixed(2)}</span>
-                                </div>
-                                <div className="border-t border-[#8c2d8b] pt-2 mt-2">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-semibold text-gray-900">Total:</span>
-                                        <span className="text-xl font-bold text-[#8C2D8B]">CAD$ {totalPrice.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
                         )}
                     </div>
 
