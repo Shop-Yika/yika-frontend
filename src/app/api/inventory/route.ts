@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 // Server-side only - never exposed to browser
 const AWS_API_URL = process.env.API_URL;
@@ -57,6 +58,45 @@ export async function GET(request: NextRequest) {
                 error: 'Internal server error',
                 message: error instanceof Error ? error.message : 'Unknown error'
             },
+            { status: 500 }
+        );
+    }
+}
+
+export async function POST(request: NextRequest) {
+    if (!AWS_API_URL) {
+        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    const token = await getToken({ req: request });
+    if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    let body: unknown;
+    try {
+        body = await request.json();
+    } catch {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    try {
+        const baseUrl = AWS_API_URL.endsWith('/') ? AWS_API_URL.slice(0, -1) : AWS_API_URL;
+        const response = await fetch(`${baseUrl}/inventory`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token.accessToken}`,
+            },
+            body: JSON.stringify(body),
+            cache: 'no-store',
+        });
+
+        const data = await response.json();
+        return NextResponse.json(data, { status: response.status });
+    } catch (error) {
+        return NextResponse.json(
+            { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
             { status: 500 }
         );
     }

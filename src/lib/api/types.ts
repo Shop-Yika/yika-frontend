@@ -23,6 +23,10 @@ export interface InventoryItem {
   sizes?: string[];              // ["S", "M", "L", "XL"]
   availability?: boolean;        // Is it available for rent?
 
+  // Ownership
+  contact?: string;  // owner's email ("contact" field in AWS)
+  owner_id?: string; // owner's user ID from Auth.js session (sub claim)
+
   // Additional metadata
   tags?: string[];               // ["summer", "maxi", "ombre"]
   rating?: number;               // Average rating (0-5)

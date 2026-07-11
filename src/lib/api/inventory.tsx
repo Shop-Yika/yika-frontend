@@ -44,6 +44,8 @@ function normalizeItem(raw: any, index: number): InventoryItem {
         sizes,
         stock,
         availability: raw.availability ?? true,
+        contact:  raw.contact  ?? '',
+        owner_id: raw.owner_id ?? '',
         tags: raw.tags ?? [],
         rating: raw.rating,
         reviews: raw.reviews,

@@ -22,6 +22,9 @@ export default function ProductPage() {
     const [error,            setError]            = useState<string | null>(null);
     const [selectedImage,    setSelectedImage]    = useState(0);
     const [showLoginPrompt,  setShowLoginPrompt]  = useState(false);
+    const [selectedSize,     setSelectedSize]     = useState<string | null>(null);
+    const [fitExpanded,      setFitExpanded]      = useState(false);
+    const [selectedPeriod,   setSelectedPeriod]   = useState<number | null>(null);
 
     // Rental dates
     const [dateRange,  setDateRange]  = useState<DateRange | undefined>(undefined);
@@ -299,49 +302,108 @@ export default function ProductPage() {
                     )}
 
                     {/* Seller notes */}
-                    <div className="mb-6 border-t pt-6">
-                        <h3 className="font-semibold italic mb-3">SELLER&apos;S NOTES</h3>
-                        <dl className="flex flex-col gap-1 text-sm">
-                            <div className="flex gap-4">
-                                <dt className="text-gray-500">Brand:</dt>
-                                <dd className="font-medium">{product.brand}</dd>
-                            </div>
-                            <div className="flex gap-4">
-                                <dt className="text-gray-500">Category:</dt>
-                                <dd className="font-medium">{product.category}</dd>
-                            </div>
-                            {product.color && (
-                                <div className="flex gap-4">
-                                    <dt className="text-gray-500">Colour:</dt>
-                                    <dd className="font-medium">{product.color}</dd>
-                                </div>
-                            )}
-                            {product.occasion && (
-                                <div className="flex gap-4">
-                                    <dt className="text-gray-500">Occasion:</dt>
-                                    <dd className="font-medium capitalize">{product.occasion}</dd>
-                                </div>
-                            )}
-                        </dl>
+                    <div className="mb-6 border border-[#8C2D8B] rounded-sm p-4">
+                        <h3 className="font-bold italic text-xs tracking-wide mb-3">SELLER&apos;S NOTES</h3>
+                        <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            {product.description && <li>{product.description}</li>}
+                            <li>Brand: {product.brand}</li>
+                            <li>Category: {product.category}</li>
+                            {product.color    && <li>Colour: {product.color}</li>}
+                            {product.occasion && <li>Occasion: <span className="capitalize">{product.occasion}</span></li>}
+                        </ul>
+                    </div>
+
+                    {/* Fit details */}
+                    <div className="mb-6 border-t border-b py-4">
+                        <p className="text-sm font-medium mb-2">Fit details</p>
+                        <span className="inline-block border border-black text-xs font-semibold tracking-wider px-3 py-1.5 rounded-sm">
+                            TRUE TO SIZE
+                        </span>
                     </div>
 
                     {/* Sizes */}
                     {product.sizes && product.sizes.length > 0 && (
-                        <div className="mb-6">
-                            <h3 className="font-semibold mb-3">Available Sizes</h3>
+                        <div className="mb-2">
+                            <h3 className="font-bold text-xs tracking-wide mb-3">SIZE</h3>
                             <div className="flex gap-2 flex-wrap">
                                 {product.sizes.map((size) => (
-                                    <span key={size} className="px-4 py-2 border border-gray-300 text-sm hover:border-black transition-colors">
+                                    <button
+                                        key={size}
+                                        onClick={() => setSelectedSize(size === selectedSize ? null : size)}
+                                        className={`px-4 py-2 border text-sm font-medium transition-colors rounded-sm ${
+                                            selectedSize === size
+                                                ? 'bg-[#8C2D8B] border-[#8C2D8B] text-white'
+                                                : 'border-gray-300 text-gray-800 hover:border-gray-600'
+                                        }`}
+                                    >
                                         {size}
-                                    </span>
+                                    </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
+                    {/* Questions about fit */}
+                    <div className="mb-6">
+                        <button
+                            onClick={() => setFitExpanded((v) => !v)}
+                            className="text-sm underline text-gray-700 flex items-center gap-1 mt-2"
+                        >
+                            Questions about fit?
+                            <svg className={`w-4 h-4 transition-transform ${fitExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        {fitExpanded && (
+                            <div className="mt-3 bg-[#8C2D8B]/10 border border-[#8C2D8B]/30 text-gray-700 text-sm px-4 py-3 rounded-md">
+                                Sizing varies by brand, see{' '}
+                                <span className="underline cursor-pointer">brand&apos;s</span>{' '}
+                                size guide for accurate measurements.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Rental period presets */}
+                    <div className="mb-6 border-t pt-6">
+                        <h3 className="font-bold text-xs tracking-wide mb-3">RENTAL PERIOD</h3>
+                        <div className="flex items-start gap-2 bg-[#8C2D8B]/10 border border-[#8C2D8B]/30 rounded-sm px-3 py-2 mb-4 text-xs text-gray-700">
+                            <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#8C2D8B]" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A1 1 0 012.293 9.293L10 16.586l7.707-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Longer rentals mean lower daily rates and bigger savings.
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                { days: 4,  total: 30.21, daily: 7.55, save: null },
+                                { days: 8,  total: 30.21, daily: 5.04, save: 33  },
+                                { days: 16, total: 72.50, daily: 4.53, save: 40  },
+                                { days: 30, total: 30.21, daily: 3.02, save: 60  },
+                            ].map(({ days, total, daily, save }) => (
+                                <button
+                                    key={days}
+                                    onClick={() => setSelectedPeriod(days === selectedPeriod ? null : days)}
+                                    className={`border rounded-sm p-3 text-left transition-colors ${
+                                        selectedPeriod === days
+                                            ? 'border-[#8C2D8B] bg-[#8C2D8B]/5'
+                                            : 'border-gray-200 hover:border-gray-400'
+                                    }`}
+                                >
+                                    <p className="text-sm font-semibold text-gray-900">{days} days</p>
+                                    <p className="text-sm font-bold text-gray-900 mt-0.5">${total.toFixed(2)}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                        ${daily.toFixed(2)}/day
+                                        {save && (
+                                            <span className="text-[#8C2D8B] font-medium ml-1">Save {save}%</span>
+                                        )}
+                                    </p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Rental date picker */}
                     <div className="mb-6 border-t pt-6">
-                        <h3 className="font-semibold mb-1">Select Rental Dates</h3>
+                        <h3 className="font-bold text-xs tracking-wide mb-1">SELECT RENTAL DATES</h3>
                         <p className="text-xs text-gray-400 mb-4">Minimum 4-day rental</p>
 
                         {/* Calendar + summary side by side */}
