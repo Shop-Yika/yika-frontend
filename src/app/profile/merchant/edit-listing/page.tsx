@@ -36,12 +36,16 @@ export default function EditListingPage() {
 
     // ── Core form fields — seeded from the listing ──
     const [form, setForm] = useState({
-        itemName:  SAMPLE_LISTING.itemName,
-        category:  SAMPLE_LISTING.category,
-        size:      SAMPLE_LISTING.size,
-        brand:     SAMPLE_LISTING.brand,
-        brandName: SAMPLE_LISTING.brandName,
-        rrp:       SAMPLE_LISTING.rrp,
+        itemName:    SAMPLE_LISTING.itemName,
+        category:    SAMPLE_LISTING.category,
+        size:        SAMPLE_LISTING.size,
+        brand:       SAMPLE_LISTING.brand,
+        brandName:   SAMPLE_LISTING.brandName,
+        rrp:         SAMPLE_LISTING.rrp,
+        description: "",
+        color:       "",
+        gender:      "",
+        occasion:    "",
     });
 
     // ── Duration + rental price — seeded from existing listing ──
