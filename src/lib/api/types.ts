@@ -75,6 +75,25 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+export interface AvailabilityWindow {
+  start: string; // "YYYY-MM-DD", inclusive
+  end: string;
+}
+
+export interface RemainingSegment {
+  start: string;
+  end: string;
+  units: number;
+  bookable: boolean;
+}
+
+export interface ItemAvailability {
+  itemId: string;
+  availability: AvailabilityWindow | boolean | null; // legacy items echo back a bare boolean instead of a window
+  window: AvailabilityWindow | null;       // range the `remaining` spans cover
+  remaining: Record<string, RemainingSegment[]>; // keyed by size
+}
+
 export interface RentalEvent {
   renterName: string;
   startDate: Date;
