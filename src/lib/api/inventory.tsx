@@ -1,5 +1,5 @@
 // API client for inventory operations
-import { InventoryItem, ApiResponse, FilterOptions } from './types';
+import { InventoryItem, ApiResponse, FilterOptions, ItemAvailability } from './types';
 
 // ─── Normalize raw AWS item → InventoryItem ───────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +52,17 @@ function normalizeItem(raw: any, index: number): InventoryItem {
         rentalCount: raw.rentalCount ?? raw.rental_count,
         createdAt: raw.createdAt ?? raw.created_at,
         updatedAt: raw.updatedAt ?? raw.updated_at,
+    };
+}
+
+// ─── Normalize raw AWS availability response → ItemAvailability ──────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeAvailability(raw: any, id: string): ItemAvailability {
+    return {
+        itemId: raw?.ItemID ?? id,
+        availability: raw?.availability ?? null,
+        window: raw?.window ?? null,
+        remaining: raw?.remaining ?? {},
     };
 }
 
@@ -144,6 +155,12 @@ class ApiClient {
         return normalizeItem(raw, 0);
     }
 
+    async getItemAvailability(id: string): Promise<ItemAvailability> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await this.request<any>(`/inventory/${id}/availability`);
+        return normalizeAvailability(response, id);
+    }
+
     async getCategories(): Promise<string[]> {
         const response = await this.request<ApiResponse<string[]>>('/inventory/categories');
         return response.data;
@@ -198,6 +215,16 @@ export async function getProductById(id: string): Promise<InventoryItem> {
         });
     }
     return apiClient.getProductById(id);
+}
+
+export async function getItemAvailability(id: string): Promise<ItemAvailability> {
+    if (typeof window === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return fetchFromAWS<ItemAvailability>(`/inventory/${id}/availability`, (raw: any) =>
+            normalizeAvailability(raw, id)
+        );
+    }
+    return apiClient.getItemAvailability(id);
 }
 
 export async function getCategories(): Promise<string[]> {
