@@ -89,7 +89,7 @@ export interface RemainingSegment {
 
 export interface ItemAvailability {
   itemId: string;
-  availability: AvailabilityWindow | null;
+  availability: AvailabilityWindow | boolean | null; // legacy items echo back a bare boolean instead of a window
   window: AvailabilityWindow | null;       // range the `remaining` spans cover
   remaining: Record<string, RemainingSegment[]>; // keyed by size
 }

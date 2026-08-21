@@ -112,7 +112,15 @@ export default function ProductPage() {
 
     // ── Rental-date availability helpers ────────────────────────────────────────
     const effectiveSize = selectedSize ?? product?.sizes?.[0] ?? null;
-    const availabilityWindow = itemAvailability?.window ?? itemAvailability?.availability ?? null;
+
+    // Items that predate the rental-window feature still echo back a legacy
+    // boolean `availability: true` instead of a {start, end} object — treat
+    // anything that isn't a real window as "none configured."
+    const rawAvailability = itemAvailability?.window ?? itemAvailability?.availability ?? null;
+    const availabilityWindow =
+        rawAvailability && typeof rawAvailability === 'object' && 'start' in rawAvailability && 'end' in rawAvailability
+            ? rawAvailability
+            : null;
 
     // Expands the backend's compressed spans into a per-day units lookup.
     const perDayUnits = useMemo(() => {
