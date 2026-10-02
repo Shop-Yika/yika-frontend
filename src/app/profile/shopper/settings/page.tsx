@@ -1,16 +1,17 @@
 "use client";
 
-import {useState} from 'react';
-import {Button} from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
-const INITIAL = {
-    name:    'Tatiana Smith',
-    email:   'tatiana@email.com',
+const EMPTY = {
+    name:     '',
+    email:    '',
     password: '',
-    street:  '123 Fashion Avenue',
-    city:    'New York',
-    state:   'NY',
-    zip:     '10001',
+    street:   '',
+    city:     '',
+    state:    '',
+    zip:      '',
 };
 
 const inputClass =
@@ -19,56 +20,91 @@ const inputClass =
 const labelClass = 'block text-[14px] font-medium text-[#111827] mb-1.5';
 
 export default function Settings() {
-    const [fields, setFields] = useState(INITIAL);
+    const { data: session } = useSession();
+    const [fields, setFields]     = useState(EMPTY);
+    const [original, setOriginal] = useState(EMPTY);
 
-    const isDirty = Object.keys(INITIAL).some(
-        (k) => fields[k as keyof typeof INITIAL] !== INITIAL[k as keyof typeof INITIAL]
+    // Seed name and email from the live session once it's available
+    useEffect(() => {
+        if (!session?.user) return;
+        const seeded = {
+            ...EMPTY,
+            name:  session.user.name  ?? '',
+            email: session.user.email ?? '',
+        };
+        setFields(seeded);
+        setOriginal(seeded);
+    }, [session]);
+
+    const isDirty = Object.keys(EMPTY).some(
+        (k) => fields[k as keyof typeof EMPTY] !== original[k as keyof typeof EMPTY]
     );
 
-    function set(key: keyof typeof INITIAL) {
+    function set(key: keyof typeof EMPTY) {
         return (e: React.ChangeEvent<HTMLInputElement>) =>
-            setFields(prev => ({...prev, [key]: e.target.value}));
+            setFields(prev => ({ ...prev, [key]: e.target.value }));
     }
 
     return (
         <div className="mt-8 max-w-xl">
-            <form onSubmit={e => e.preventDefault()} className="flex flex-col gap-6">
-                <div>
-                    <label htmlFor="name" className={labelClass}>Name</label>
-                    <input
-                        id="name"
-                        type="text"
-                        value={fields.name}
-                        onChange={set('name')}
-                        className={inputClass}
-                    />
-                </div>
+            <form onSubmit={e => e.preventDefault()} className="flex flex-col gap-8">
 
-                <div>
-                    <label htmlFor="email" className={labelClass}>Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={fields.email}
-                        onChange={set('email')}
-                        className={inputClass}
-                    />
-                </div>
+                {/* Account info */}
+                <section className="flex flex-col gap-4">
+                    <h2 className="text-[15px] font-semibold text-[#111827] border-b border-[#E5E7EB] pb-2">
+                        Account Information
+                    </h2>
 
-                <div>
-                    <label htmlFor="password" className={labelClass}>Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        value={fields.password}
-                        onChange={set('password')}
-                        placeholder="••••••••••••••••"
-                        className={inputClass}
-                    />
-                </div>
+                    <div>
+                        <label htmlFor="name" className={labelClass}>Username</label>
+                        <input
+                            id="name"
+                            type="text"
+                            value={fields.name}
+                            onChange={set('name')}
+                            placeholder="Your username"
+                            className={inputClass}
+                        />
+                    </div>
 
-                <fieldset className="flex flex-col gap-3">
-                    <legend className={labelClass}>Shipping Address</legend>
+                    <div>
+                        <label htmlFor="email" className={labelClass}>Email</label>
+                        <input
+                            id="email"
+                            type="email"
+                            value={fields.email}
+                            onChange={set('email')}
+                            placeholder="your@email.com"
+                            className={inputClass}
+                        />
+                    </div>
+                </section>
+
+                {/* Password */}
+                <section className="flex flex-col gap-4">
+                    <h2 className="text-[15px] font-semibold text-[#111827] border-b border-[#E5E7EB] pb-2">
+                        Change Password
+                    </h2>
+
+                    <div>
+                        <label htmlFor="password" className={labelClass}>New Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={fields.password}
+                            onChange={set('password')}
+                            placeholder="••••••••••••••••"
+                            className={inputClass}
+                        />
+                    </div>
+                </section>
+
+                {/* Shipping address */}
+                <section className="flex flex-col gap-3">
+                    <h2 className="text-[15px] font-semibold text-[#111827] border-b border-[#E5E7EB] pb-2">
+                        Shipping Address
+                    </h2>
+
                     <input
                         type="text"
                         value={fields.street}
@@ -90,20 +126,20 @@ export default function Settings() {
                             type="text"
                             value={fields.state}
                             onChange={set('state')}
-                            placeholder="State"
+                            placeholder="Province"
                             className={inputClass}
-                            aria-label="State"
+                            aria-label="Province"
                         />
                         <input
                             type="text"
                             value={fields.zip}
                             onChange={set('zip')}
-                            placeholder="ZIP"
+                            placeholder="Postal code"
                             className={inputClass}
-                            aria-label="ZIP code"
+                            aria-label="Postal code"
                         />
                     </div>
-                </fieldset>
+                </section>
 
                 <div>
                     <Button

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
     usePhotoSlots,
@@ -9,43 +11,106 @@ import {
 } from "@/components/dashboard/listing-shared";
 
 export default function PostListingPage() {
+    const router = useRouter();
+    const { data: session } = useSession();
 
-    // ── Photo slots — all empty on Post page ──
     const { slots, handleChange, handleRemove } = usePhotoSlots();
 
-    // ── Core form fields ──
     const [form, setForm] = useState({
-        itemName:  "",
-        category:  "",
-        size:      "",
-        brand:     "",
-        brandName: "",
-        rrp:       "",
+        itemName:    "",
+        category:    "",
+        size:        "",
+        brand:       "",
+        brandName:   "",
+        rrp:         "",
+        description: "",
+        color:       "",
+        gender:      "",
+        occasion:    "",
     });
 
-    // ── Rental Price and Duration ──
-    // selectedDuration: null = no pill chosen yet → price inputs hidden
     const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
     const [rentalPrice, setRentalPrice] = useState("");
+    const [publishing, setPublishing] = useState(false);
+    const [publishError, setPublishError] = useState<string | null>(null);
 
-    /**
-     * Generic setter factory for the core form fields.
-     * Works for both text inputs (e.target.value) and shadcn Select values.
-     */
     const set = (key: keyof typeof form) => (val: string) =>
         setForm((prev) => ({ ...prev, [key]: val }));
 
-    /**
-     * When the merchant picks a new duration, reset the rental price to empty
-     * so they're prompted to enter a price for the new duration.
-     */
     const handleDurationChange = (days: number) => {
         setSelectedDuration(days);
-        setRentalPrice(""); // reset so they re-enter for the new duration
+        setRentalPrice("");
     };
 
-    const handlePublish = () => {
-        // TODO: await createListing({ ...form, duration: selectedDuration, rentalPrice, photos: slots.map(s => s.file) });
+    const handlePublish = async () => {
+        if (!form.itemName || !form.category || !form.brand || !rentalPrice) {
+            setPublishError("Please fill in all required fields (name, category, brand, rental price).");
+            return;
+        }
+        if (!session?.user) {
+            setPublishError("You must be signed in to post a listing.");
+            return;
+        }
+
+        setPublishing(true);
+        setPublishError(null);
+
+        const brandName = form.brand === "other" ? form.brandName : form.brand;
+
+        const payload = {
+            ItemName:     form.itemName,
+            category:     form.category,
+            brand:        brandName,
+            description:  form.description,
+            price:        rentalPrice,
+            color:        form.color,
+            gender:       form.gender || undefined,
+            occasion:     form.occasion ? [form.occasion] : [],
+            sizes:        form.size ? [{ size: form.size, in_stock: 1 }] : [],
+            tags:         [form.category, form.color, form.occasion].filter(Boolean),
+            availability: true,
+            contact:      session.user.email,
+            owner:        session.user.name,
+            owner_id:     session.user.id,
+        };
+
+        try {
+            // 1. Create the inventory item
+            const res = await fetch("/api/inventory", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message ?? `Server error ${res.status}`);
+            }
+
+            const created = await res.json();
+            const itemId: string = created.ItemID ?? created.itemId ?? created.id;
+
+            // 2. Upload photos if any were selected
+            if (itemId) {
+                const photoSlots = slots.filter((s) => s.file);
+                await Promise.all(
+                    photoSlots.map(async (slot) => {
+                        const fd = new FormData();
+                        fd.append("image", slot.file!);
+                        await fetch(`/api/inventory/${itemId}/upload-image`, {
+                            method: "POST",
+                            body: fd,
+                        });
+                    })
+                );
+            }
+
+            router.push("/profile/merchant/active-listings");
+        } catch (err) {
+            setPublishError(err instanceof Error ? err.message : "Failed to publish listing.");
+        } finally {
+            setPublishing(false);
+        }
     };
 
     return (
@@ -56,25 +121,28 @@ export default function PostListingPage() {
                 backHref="../merchant/active-listings"
                 footer={
                     <>
-                        {/* Footer left: secondary back link */}
                         <Link
-                            href={"../merchant/active-listings"}
+                            href="../merchant/active-listings"
                             className="px-6 py-2.5 rounded-xl text-sm font-semibold text-[#6B6480] border border-[#E2E0E8] hover:bg-[#F9F5FF] transition-colors"
                         >
                             Back to Listings
                         </Link>
-
-                        {/* Footer right: primary publish action */}
                         <button
                             type="button"
                             onClick={handlePublish}
-                            className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1A1530] hover:bg-[#2D2450] transition-colors"
+                            disabled={publishing}
+                            className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1A1530] hover:bg-[#2D2450] transition-colors disabled:opacity-60"
                         >
-                            Publish Listing
+                            {publishing ? "Publishing…" : "Publish Listing"}
                         </button>
                     </>
                 }
             >
+                {publishError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl mb-2">
+                        {publishError}
+                    </div>
+                )}
                 <SharedFormFields
                     slots={slots}
                     onPhotoChange={handleChange}
@@ -85,11 +153,8 @@ export default function PostListingPage() {
                     onDurationChange={handleDurationChange}
                     rentalPrice={rentalPrice}
                     onRentalPriceChange={setRentalPrice}
-                    // showBrandNameField omitted — Brand Name only shows when user picks "Other"
                 />
             </FormShell>
         </div>
     );
 }
-
-

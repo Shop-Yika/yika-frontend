@@ -1,20 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**', // Allow all HTTPS images (adjust for production)
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-      },
-    ],
-  },
-  reactCompiler: true,
+    images: {
+        remotePatterns: [
+            // AWS S3 / CloudFront for product images
+            {
+                protocol: 'https',
+                hostname: '*.amazonaws.com',
+            },
+            // Unsplash — used in sample/fixture data only.
+            // Remove once real product images are served from S3.
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+        ],
+    },
+    reactCompiler: true,
 };
 
 export default nextConfig;

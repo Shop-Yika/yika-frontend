@@ -23,6 +23,10 @@ export interface InventoryItem {
   sizes?: string[];              // ["S", "M", "L", "XL"]
   availability?: boolean;        // Is it available for rent?
 
+  // Ownership
+  contact?: string;  // owner's email ("contact" field in AWS)
+  owner_id?: string; // owner's user ID from Auth.js session (sub claim)
+
   // Additional metadata
   tags?: string[];               // ["summer", "maxi", "ombre"]
   rating?: number;               // Average rating (0-5)
@@ -69,6 +73,25 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface AvailabilityWindow {
+  start: string; // "YYYY-MM-DD", inclusive
+  end: string;
+}
+
+export interface RemainingSegment {
+  start: string;
+  end: string;
+  units: number;
+  bookable: boolean;
+}
+
+export interface ItemAvailability {
+  itemId: string;
+  availability: AvailabilityWindow | boolean | null; // legacy items echo back a bare boolean instead of a window
+  window: AvailabilityWindow | null;       // range the `remaining` spans cover
+  remaining: Record<string, RemainingSegment[]>; // keyed by size
 }
 
 export interface RentalEvent {

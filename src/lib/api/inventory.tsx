@@ -1,5 +1,5 @@
 // API client for inventory operations
-import { InventoryItem, ApiResponse, FilterOptions } from './types';
+import { InventoryItem, ApiResponse, FilterOptions, ItemAvailability } from './types';
 
 // ─── Normalize raw AWS item → InventoryItem ───────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,12 +44,25 @@ function normalizeItem(raw: any, index: number): InventoryItem {
         sizes,
         stock,
         availability: raw.availability ?? true,
+        contact:  raw.contact  ?? '',
+        owner_id: raw.owner_id ?? '',
         tags: raw.tags ?? [],
         rating: raw.rating,
         reviews: raw.reviews,
         rentalCount: raw.rentalCount ?? raw.rental_count,
         createdAt: raw.createdAt ?? raw.created_at,
         updatedAt: raw.updatedAt ?? raw.updated_at,
+    };
+}
+
+// ─── Normalize raw AWS availability response → ItemAvailability ──────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeAvailability(raw: any, id: string): ItemAvailability {
+    return {
+        itemId: raw?.ItemID ?? id,
+        availability: raw?.availability ?? null,
+        window: raw?.window ?? null,
+        remaining: raw?.remaining ?? {},
     };
 }
 
@@ -66,8 +79,6 @@ async function fetchFromAWS<T>(
 
     const baseUrl = AWS_API_URL.endsWith('/') ? AWS_API_URL.slice(0, -1) : AWS_API_URL;
     const url = `${baseUrl}${path}`;
-
-    console.log('📡 Fetching from AWS:', url);
 
     const response = await fetch(url, {
         method: 'GET',
@@ -124,13 +135,30 @@ class ApiClient {
             });
         }
         const endpoint = `/inventory${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-        const response = await this.request<ApiResponse<InventoryItem[]>>(endpoint);
-        return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await this.request<any>(endpoint);
+        // Handle both { data: [...] } and [...] response shapes, then normalize
+        // each raw AWS item so field names match InventoryItem throughout the app.
+        const raw: unknown[] = Array.isArray(response)
+            ? response
+            : Array.isArray(response?.data)
+                ? response.data
+                : [];
+        return raw.map((item, i) => normalizeItem(item, i));
     }
 
     async getProductById(id: string): Promise<InventoryItem> {
-        const response = await this.request<ApiResponse<InventoryItem>>(`/inventory/${id}`);
-        return response.data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await this.request<any>(`/inventory/${id}`);
+        // Unwrap { data: {...} } if present, then normalize AWS field names
+        const raw: unknown = response?.data ?? response;
+        return normalizeItem(raw, 0);
+    }
+
+    async getItemAvailability(id: string): Promise<ItemAvailability> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await this.request<any>(`/inventory/${id}/availability`);
+        return normalizeAvailability(response, id);
     }
 
     async getCategories(): Promise<string[]> {
@@ -179,11 +207,24 @@ export async function getInventory(filters?: FilterOptions): Promise<InventoryIt
 export async function getProductById(id: string): Promise<InventoryItem> {
     if (typeof window === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return fetchFromAWS<InventoryItem>(`/inventory/${id}`, (raw: any) =>
-            normalizeItem(raw, 0)
-        );
+        return fetchFromAWS<InventoryItem>(`/inventory/${id}`, (raw: any) => {
+            // AWS returns { item: { ...fields }, images: [ ...s3Urls ] }
+            const item   = raw?.item   ?? raw;
+            const images = raw?.images ?? [];
+            return normalizeItem({ ...item, images }, 0);
+        });
     }
     return apiClient.getProductById(id);
+}
+
+export async function getItemAvailability(id: string): Promise<ItemAvailability> {
+    if (typeof window === 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return fetchFromAWS<ItemAvailability>(`/inventory/${id}/availability`, (raw: any) =>
+            normalizeAvailability(raw, id)
+        );
+    }
+    return apiClient.getItemAvailability(id);
 }
 
 export async function getCategories(): Promise<string[]> {

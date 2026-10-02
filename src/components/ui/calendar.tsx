@@ -260,11 +260,10 @@ function CalendarDayButton({
               // ── Selected single date: solid purple ──
               "data-[selected-single=true]:bg-[#9B5DE5] data-[selected-single=true]:text-white data-[selected-single=true]:font-semibold",
               "data-[selected-single=true]:hover:bg-[#7C3ACA]",
-              // Range start/end: same purple solid
-              "data-[range-start=true]:rounded-l-md data-[range-start=true]:bg-[#9B5DE5] data-[range-start=true]:text-white",
-              "data-[range-end=true]:rounded-r-md data-[range-end=true]:bg-[#9B5DE5] data-[range-end=true]:text-white",
-              // Range middle: light purple tint
-              "data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-[#F3EEFF] data-[range-middle=true]:text-[#9B5DE5]",
+              // Range start/middle/end: same solid purple, same rounding
+              "data-[range-start=true]:rounded-md data-[range-start=true]:bg-[#9B5DE5] data-[range-start=true]:text-white",
+              "data-[range-end=true]:rounded-md data-[range-end=true]:bg-[#9B5DE5] data-[range-end=true]:text-white",
+              "data-[range-middle=true]:rounded-md data-[range-middle=true]:bg-[#9B5DE5] data-[range-middle=true]:text-white",
               // Sub-event spans (e.g. event dots)
               "[&>span]:text-xs [&>span]:opacity-70",
               defaultClassNames.day,

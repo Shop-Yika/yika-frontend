@@ -545,6 +545,7 @@ export function SharedFormFields({
     form: {
         itemName: string; category: string; size: string;
         brand: string; brandName: string; rrp: string;
+        description: string; color: string; gender: string; occasion: string;
     };
     set: (key: keyof typeof form) => (val: string) => void;
     selectedDuration: number | null;
@@ -638,7 +639,48 @@ export function SharedFormFields({
                 </div>
             </div>
 
-            {/* 4. Pricing — Retail Price only */}
+            {/* 4. Item Details */}
+            <div>
+                <SectionLabel>Item Details</SectionLabel>
+                <div className="flex flex-col gap-3 mt-3">
+                    <Field label="Description">
+                        <textarea
+                            className={cn(inputCls, "h-24 resize-none py-2.5")}
+                            placeholder="Describe the item — fit, condition, fabric, etc."
+                            value={form.description}
+                            onChange={(e) => set("description")(e.target.value)}
+                        />
+                    </Field>
+                    <Field label="Colour">
+                        <input
+                            type="text"
+                            className={inputCls}
+                            placeholder="e.g. Black, Pink, Navy"
+                            value={form.color}
+                            onChange={(e) => set("color")(e.target.value)}
+                        />
+                    </Field>
+                    <Field label="Gender">
+                        <StyledSelect placeholder="Select gender" value={form.gender} onValueChange={set("gender")}>
+                            <SelectItem value="Women">Women</SelectItem>
+                            <SelectItem value="Men">Men</SelectItem>
+                            <SelectItem value="Unisex">Unisex</SelectItem>
+                        </StyledSelect>
+                    </Field>
+                    <Field label="Occasion">
+                        <StyledSelect placeholder="Select occasion" value={form.occasion} onValueChange={set("occasion")}>
+                            <SelectItem value="casual">Casual</SelectItem>
+                            <SelectItem value="formal">Formal</SelectItem>
+                            <SelectItem value="party">Party</SelectItem>
+                            <SelectItem value="work">Work</SelectItem>
+                            <SelectItem value="street wear">Street Wear</SelectItem>
+                            <SelectItem value="daily wear">Daily Wear</SelectItem>
+                        </StyledSelect>
+                    </Field>
+                </div>
+            </div>
+
+            {/* 5. Pricing — Retail Price only */}
             <div>
                 <SectionLabel>Pricing</SectionLabel>
                 <div className="flex flex-col gap-1.5 mt-3">
