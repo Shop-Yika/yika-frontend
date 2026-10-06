@@ -8,12 +8,13 @@ import { InventoryItem, ItemAvailability } from '@/lib/api/types';
 import { useLikedItems } from '@/lib/hooks/useLikedItems';
 import { useCart } from '@/lib/hooks/useCart';
 import { apiClient } from '@/lib/api/inventory';
+import { getRentalFee } from '@/lib/pricing';
 import { Calendar } from '@/components/ui/calendar';
 import { format, differenceInDays, addDays, eachDayOfInterval, isSameDay } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 
 // Must stay >= the backend's 4-day minimum rental period.
-const RENTAL_PERIODS = [4, 8, 16, 30] as const;
+const RENTAL_PERIODS = [4, 7, 14, 30] as const;
 
 // Avoids the UTC-midnight parsing of new Date("YYYY-MM-DD"), which can land
 // on the wrong local day.
@@ -103,7 +104,7 @@ export default function ProductPage() {
         if (dateRange?.from && dateRange?.to && product) {
             const days = differenceInDays(dateRange.to, dateRange.from) + 1;
             setRentalDays(days);
-            setTotalPrice(product.price * days);
+            setTotalPrice(getRentalFee(product.price, days));
         } else {
             setRentalDays(0);
             setTotalPrice(0);
@@ -213,7 +214,7 @@ export default function ProductPage() {
             name:        product!.name,
             brand:       product!.brand,
             imageUrl:    product!.imageUrl,
-            pricePerDay: product!.price,
+            pricePerDay: totalPrice / rentalDays,
             startDate:   startDate!.toISOString(),
             endDate:     endDate!.toISOString(),
             rentalDays,
@@ -229,7 +230,7 @@ export default function ProductPage() {
             name:        product!.name,
             brand:       product!.brand,
             imageUrl:    product!.imageUrl,
-            pricePerDay: product!.price,
+            pricePerDay: totalPrice / rentalDays,
             startDate:   startDate!.toISOString(),
             endDate:     endDate!.toISOString(),
             rentalDays,
@@ -407,13 +408,14 @@ export default function ProductPage() {
                     </div>
 
                     {/* Price */}
-                    <div className="mb-6">
-                        <p className="text-sm">
-                            from{' '}
-                            <span className="text-lg font-semibold">CAD$ {product.price.toFixed(2)}</span>
-                            <span className="text-gray-500">/day</span>
-                        </p>
-                    </div>
+                       <div className="mb-6">
+       <p className="text-sm">
+           from{' '}
+           <span className="text-lg font-semibold">CAD$ {getRentalFee(product.price, RENTAL_PERIODS[0]).toFixed(2)}</span>
+           <span className="text-gray-500"> / {RENTAL_PERIODS[0]} days</span>
+       </p>
+       <p className="text-xs text-gray-500 mt-1">Retail value CAD$ {product.price.toFixed(2)}</p>
+   </div>
 
                     {/* Description */}
                     {product.description && (
@@ -507,7 +509,7 @@ export default function ProductPage() {
                         )}
                         <div className="grid grid-cols-2 gap-3">
                             {RENTAL_PERIODS.map((days) => {
-                                const total = product.price * days;
+                                const total = getRentalFee(product.price, days);
                                 const hasOpenDates = (validStartsByPeriod[days]?.size ?? 0) > 0;
                                 const isDisabled = loadingAvailability || !effectiveSize || !hasOpenDates;
                                 return (
@@ -542,7 +544,7 @@ export default function ProductPage() {
                                                 ? 'Checking availability…'
                                                 : effectiveSize && !hasOpenDates
                                                     ? 'No open dates'
-                                                    : `CAD$ ${product.price.toFixed(2)}/day`}
+                                                    : `CAD$ ${(total / days).toFixed(2)}/day`}
                                         </p>
                                     </button>
                                 );
@@ -653,7 +655,7 @@ export default function ProductPage() {
                                     </div>
                                     <div className="flex justify-between items-center mb-4 text-sm">
                                         <span className="text-gray-600">Daily rate</span>
-                                        <span className="font-medium">CAD$ {product.price.toFixed(2)}</span>
+                                        <span className="font-medium">CAD$ {(totalPrice / rentalDays).toFixed(2)}</span>
                                     </div>
                                     <div className="border-t border-[#8c2d8b] pt-3">
                                         <div className="flex justify-between items-center">
