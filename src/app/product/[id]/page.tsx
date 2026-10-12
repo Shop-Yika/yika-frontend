@@ -8,12 +8,16 @@ import { InventoryItem, ItemAvailability } from '@/lib/api/types';
 import { useLikedItems } from '@/lib/hooks/useLikedItems';
 import { useCart } from '@/lib/hooks/useCart';
 import { apiClient } from '@/lib/api/inventory';
-import { Calendar } from '@/components/ui/calendar';
-import { format, differenceInDays, addDays, eachDayOfInterval, isSameDay } from 'date-fns';
+import { getRentalFee, getSavingsPct } from '@/lib/pricing';
+import { RentalCalendar, type DayState } from '@/components/shop/rental-calendar';
+import { RentalEstimate } from '@/components/shop/rental-estimate';
+import { format, differenceInDays, addDays, startOfDay, startOfMonth } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 
 // Must stay >= the backend's 4-day minimum rental period.
-const RENTAL_PERIODS = [4, 8, 16, 30] as const;
+const RENTAL_PERIODS = [4, 7, 14, 30] as const;
+const BUFFER_DAYS = 2;  // days shown as buffer before and after a rental
+const ROLL_MONTHS = 6;  // how many months ahead rentals can be booked
 
 // Avoids the UTC-midnight parsing of new Date("YYYY-MM-DD"), which can land
 // on the wrong local day.
@@ -34,7 +38,7 @@ export default function ProductPage() {
     const [showLoginPrompt,  setShowLoginPrompt]  = useState(false);
     const [selectedSize,     setSelectedSize]     = useState<string | null>(null);
     const [fitExpanded,      setFitExpanded]      = useState(false);
-    const [selectedPeriod,   setSelectedPeriod]   = useState<number | null>(null);
+    const [selectedPeriod,   setSelectedPeriod]   = useState<number | null>(RENTAL_PERIODS[0]);
 
     // Rental dates
     const [dateRange,  setDateRange]  = useState<DateRange | undefined>(undefined);
@@ -45,6 +49,9 @@ export default function ProductPage() {
     // Rental availability
     const [itemAvailability,    setItemAvailability]    = useState<ItemAvailability | null>(null);
     const [loadingAvailability, setLoadingAvailability] = useState(true);
+
+    // First of the two months shown on the rental calendar
+    const [calendarMonth, setCalendarMonth] = useState<Date>(() => startOfMonth(new Date()));
 
     const startDate = dateRange?.from;
     const endDate   = dateRange?.to;
@@ -103,7 +110,7 @@ export default function ProductPage() {
         if (dateRange?.from && dateRange?.to && product) {
             const days = differenceInDays(dateRange.to, dateRange.from) + 1;
             setRentalDays(days);
-            setTotalPrice(product.price * days);
+            setTotalPrice(getRentalFee(product.price, days));
         } else {
             setRentalDays(0);
             setTotalPrice(0);
@@ -148,9 +155,6 @@ export default function ProductPage() {
         return true;
     };
 
-    const isRangeFullyAvailable = (from: Date, to: Date): boolean =>
-        eachDayOfInterval({ start: from, end: to }).every(isDayAvailable);
-
     // Every valid start date per preset length. Built in calendar order, so
     // the first entry of each set is also its earliest valid start — relied
     // on by earliestStartFor below.
@@ -162,10 +166,15 @@ export default function ProductPage() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const windowStart = parseISODateLocal(availabilityWindow.start);
-        const end = parseISODateLocal(availabilityWindow.end);
+        const availabilityEnd = parseISODateLocal(availabilityWindow.end);
+        // Like the rental site, a rental must end within the next ROLL_MONTHS months.
+        const bookingEnd = new Date(today.getFullYear(), today.getMonth() + ROLL_MONTHS, 0);
+        const end = availabilityEnd < bookingEnd ? availabilityEnd : bookingEnd;
         for (let d = windowStart > today ? windowStart : today; d <= end; d = addDays(d, 1)) {
             for (const days of RENTAL_PERIODS) {
-                if (isValidPeriodStart(d, days)) result[days].add(format(d, 'yyyy-MM-dd'));
+                if (addDays(d, days - 1) <= end && isValidPeriodStart(d, days)) {
+                    result[days].add(format(d, 'yyyy-MM-dd'));
+                }
             }
         }
         return result;
@@ -181,19 +190,80 @@ export default function ProductPage() {
     // valid 4-day start — this doubles as "can this item be rented at all".
     const canBookAnyDate = (validStartsByPeriod[4]?.size ?? 0) > 0;
 
-    const isDateDisabled = (date: Date): boolean => {
-        const day = new Date(date);
-        day.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (day < today) return true;
-        if (loadingAvailability || !effectiveSize) return true;
+    // ── Rental calendar (two months, same behaviour as the rental site) ────────
+    const firstCalendarMonth = startOfMonth(new Date());
+    const lastCalendarMonth = new Date(
+        firstCalendarMonth.getFullYear(),
+        firstCalendarMonth.getMonth() + ROLL_MONTHS - 2,
+        1
+    );
 
-        if (selectedPeriod) {
-            return !validStartsByPeriod[selectedPeriod]?.has(format(day, 'yyyy-MM-dd'));
+    // When dates are picked, show the month the rental starts in.
+    useEffect(() => {
+        if (!startDate) return;
+        const first = startOfMonth(new Date());
+        const last = new Date(first.getFullYear(), first.getMonth() + ROLL_MONTHS - 2, 1);
+        let view = startOfMonth(startDate);
+        if (view < first) view = first;
+        if (view > last) view = last;
+        setCalendarMonth(view);
+    }, [startDate]);
+
+    // Tells the calendar which colour one day gets.
+    const getDayState = (date: Date): DayState => {
+        const day = startOfDay(date);
+        if (day < startOfDay(new Date()) || loadingAvailability || !isDayAvailable(day)) {
+            return 'unavailable';
         }
-        return !isDayAvailable(day);
+        if (startDate && endDate) {
+            if (day >= startDate && day <= endDate) return 'rental';
+            if (day >= addDays(startDate, -BUFFER_DAYS) && day <= addDays(endDate, BUFFER_DAYS)) {
+                return 'buffer';
+            }
+        }
+        return 'available';
     };
+
+    // Clicking a day picks the next rental window that starts on or after it.
+    const handleDayClick = (date: Date) => {
+        setDateError(null);
+        const days = selectedPeriod ?? RENTAL_PERIODS[0];
+        const clicked = format(date, 'yyyy-MM-dd');
+        const nextStart = Array.from(validStartsByPeriod[days] ?? []).find((iso) => iso >= clicked);
+        if (!nextStart) return;
+        const start = parseISODateLocal(nextStart);
+        setSelectedPeriod(days);
+        setDateRange({ from: start, to: addDays(start, days - 1) });
+    };
+
+    // ── Rental windows (for the Earlier / Later bar and the Upcoming windows list) ──
+    // Every window for the chosen length, earliest first. Uses 4 days until a length is picked.
+    const windowLength = selectedPeriod ?? RENTAL_PERIODS[0];
+    const windowStarts = Array.from(validStartsByPeriod[windowLength] ?? []);
+    const selectedWindowIndex = startDate ? windowStarts.indexOf(format(startDate, 'yyyy-MM-dd')) : -1;
+
+    // Picks a window by its position in the list.
+    const selectWindow = (index: number) => {
+        const iso = windowStarts[index];
+        if (!iso) return;
+        const start = parseISODateLocal(iso);
+        setDateError(null);
+        setSelectedPeriod(windowLength);
+        setDateRange({ from: start, to: addDays(start, windowLength - 1) });
+    };
+
+    // Like the rental site: when the page loads, or the length or size changes,
+    // select the earliest window for that length.
+    useEffect(() => {
+        if (loadingAvailability) return;
+        const first = validStartsByPeriod[windowLength]?.values().next().value;
+        if (!first) {
+            setDateRange(undefined);
+            return;
+        }
+        const start = parseISODateLocal(first);
+        setDateRange({ from: start, to: addDays(start, windowLength - 1) });
+    }, [validStartsByPeriod, windowLength, loadingAvailability]);
 
     // ── Cart / rent actions ────────────────────────────────────────────────────
     const validateDates = (): boolean => {
@@ -213,7 +283,7 @@ export default function ProductPage() {
             name:        product!.name,
             brand:       product!.brand,
             imageUrl:    product!.imageUrl,
-            pricePerDay: product!.price,
+            pricePerDay: totalPrice / rentalDays,
             startDate:   startDate!.toISOString(),
             endDate:     endDate!.toISOString(),
             rentalDays,
@@ -229,7 +299,7 @@ export default function ProductPage() {
             name:        product!.name,
             brand:       product!.brand,
             imageUrl:    product!.imageUrl,
-            pricePerDay: product!.price,
+            pricePerDay: totalPrice / rentalDays,
             startDate:   startDate!.toISOString(),
             endDate:     endDate!.toISOString(),
             rentalDays,
@@ -410,9 +480,10 @@ export default function ProductPage() {
                     <div className="mb-6">
                         <p className="text-sm">
                             from{' '}
-                            <span className="text-lg font-semibold">CAD$ {product.price.toFixed(2)}</span>
-                            <span className="text-gray-500">/day</span>
+                            <span className="text-lg font-semibold">CAD$ {getRentalFee(product.price, RENTAL_PERIODS[0]).toFixed(2)}</span>
+                            <span className="text-gray-500"> / {RENTAL_PERIODS[0]} days</span>
                         </p>
+                        <p className="text-xs text-gray-500 mt-1">Retail value CAD$ {product.price.toFixed(2)}</p>
                     </div>
 
                     {/* Description */}
@@ -485,194 +556,159 @@ export default function ProductPage() {
                         )}
                     </div>
 
-                    {/* Rental period presets */}
-                    <div className="mb-6 border-t pt-6">
-                        <h3 className="font-bold text-xs tracking-wide mb-3">RENTAL PERIOD</h3>
-                        <div className="flex items-start gap-2 bg-[#8C2D8B]/10 border border-[#8C2D8B]/30 rounded-sm px-3 py-2 mb-4 text-xs text-gray-700">
-                            <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#8C2D8B]" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A1 1 0 012.293 9.293L10 16.586l7.707-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                            Pick a length to see which dates it can start on — the calendar below
-                            will highlight exactly those days.
-                        </div>
+                    {/* Rental box: length, dates and windows in one card, like the rental site */}
+                    <div className="mb-6 border border-[#ecdde8] rounded-2xl bg-white p-[18px] text-[#2a1f2b] shadow-[0_1px_2px_rgba(70,15,67,0.05),0_10px_30px_rgba(70,15,67,0.08)]">
+                        <p className="text-[11px] tracking-[0.14em] uppercase font-bold text-[#662762] mb-2.5">
+                            Rental length
+                        </p>
                         {effectiveSize && product.sizes && product.sizes.length > 1 && !selectedSize && (
-                            <p className="text-xs text-gray-500 mb-3">
+                            <p className="text-xs text-[#9a8b98] mb-3">
                                 Showing availability for size {effectiveSize} — select a size above to check another.
                             </p>
                         )}
                         {!effectiveSize && (
-                            <p className="text-xs text-gray-500 mb-3">
+                            <p className="text-xs text-[#9a8b98] mb-3">
                                 Availability is not set up for this item yet.
                             </p>
                         )}
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-4 gap-2">
                             {RENTAL_PERIODS.map((days) => {
-                                const total = product.price * days;
-                                const hasOpenDates = (validStartsByPeriod[days]?.size ?? 0) > 0;
-                                const isDisabled = loadingAvailability || !effectiveSize || !hasOpenDates;
+                                const isSelected = windowLength === days;
                                 return (
                                     <button
                                         key={days}
-                                        disabled={isDisabled}
+                                        type="button"
                                         onClick={() => {
                                             setDateError(null);
-                                            if (days === selectedPeriod) {
-                                                setSelectedPeriod(null);
-                                                setDateRange(undefined);
-                                                return;
-                                            }
                                             setSelectedPeriod(days);
                                             const start = earliestStartFor(days);
                                             setDateRange(start ? { from: start, to: addDays(start, days - 1) } : undefined);
                                         }}
-                                        className={`border rounded-sm p-3 text-left transition-colors ${
-                                            selectedPeriod === days
-                                                ? 'border-[#8C2D8B] bg-[#8C2D8B]/5'
-                                                : isDisabled
-                                                    ? 'border-gray-100 opacity-40 cursor-not-allowed'
-                                                    : 'border-gray-200 hover:border-gray-400'
+                                        className={`border rounded-xl py-[11px] px-1 text-center cursor-pointer transition-colors ${
+                                            isSelected
+                                                ? 'border-[#C7D45E] bg-[#EAEFC5] shadow-[inset_0_0_0_1px_#C7D45E]'
+                                                : 'border-[#ecdde8] bg-white hover:border-[#662762]'
                                         }`}
                                     >
-                                        <p className="text-sm font-semibold text-gray-900">{days} days</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5">
-                                            CAD$ {total.toFixed(2)}
-                                        </p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            {loadingAvailability
-                                                ? 'Checking availability…'
-                                                : effectiveSize && !hasOpenDates
-                                                    ? 'No open dates'
-                                                    : `CAD$ ${product.price.toFixed(2)}/day`}
-                                        </p>
+                                        <span className="block font-bold text-sm">{days} days</span>
+                                        <span className={`block text-xs mt-[3px] ${isSelected ? 'text-[#4a5520]' : 'text-[#5c4f5c]'}`}>
+                                            CAD$ {getRentalFee(product.price, days).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
                                     </button>
                                 );
                             })}
                         </div>
-                    </div>
 
-                    {/* Rental date picker */}
-                    <div className="mb-6 border-t pt-6">
-                        <h3 className="font-bold text-xs tracking-wide mb-1">SELECT RENTAL DATES</h3>
-                        <p className="text-xs text-gray-400 mb-4">
-                            {selectedPeriod
-                                ? `Showing the earliest available ${selectedPeriod}-day rental — click a different day to move it.`
-                                : 'Minimum 4-day rental'}
+                        <div className="flex justify-between items-baseline text-[13px] text-[#5c4f5c] mt-3.5 mb-0.5">
+                            <span>
+                                CAD$ {(getRentalFee(product.price, windowLength) / windowLength).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/day
+                            </span>
+                            {getSavingsPct(product.price, windowLength, RENTAL_PERIODS[0]) > 0 && (
+                                <span className="font-bold text-[#3c4a2a]">
+                                    Save {getSavingsPct(product.price, windowLength, RENTAL_PERIODS[0])}% vs {RENTAL_PERIODS[0]}-day
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="h-px bg-[#ecdde8] my-4" />
+
+                        <p className="text-[11px] tracking-[0.14em] uppercase font-bold text-[#662762] mb-2.5">
+                            Choose your dates
                         </p>
 
-                        {/* Calendar + summary side by side */}
-                        <div className="flex flex-col xl:flex-row gap-6 xl:items-stretch">
+                        {/* Calendar, Earlier / Later bar, windows list, then the summary */}
+                        <div className="flex flex-col">
 
-                            {/* Inline range calendar */}
-                            <div className="border border-gray-200 rounded-lg overflow-hidden w-full xl:w-auto xl:flex-shrink-0 xl:[--cell-size:--spacing(17)]">
-                                {selectedPeriod ? (
-                                    // mode="single" on purpose — react-day-picker's own
-                                    // mode="range" click logic fights with disabled days here.
-                                    <Calendar
-                                        mode="single"
-                                        selected={dateRange?.from}
-                                        onSelect={(day) => {
-                                            setDateError(null);
-                                            if (!day) { setDateRange(undefined); return; }
-                                            setDateRange({ from: day, to: addDays(day, selectedPeriod - 1) });
-                                        }}
-                                        disabled={isDateDisabled}
-                                        numberOfMonths={1}
-                                        className="p-5 w-full"
-                                        classNames={{
-                                            month: 'flex w-full flex-col gap-4',
-                                            table: 'w-full border-collapse',
-                                            week: 'mt-2 flex w-full gap-1',
-                                            weekdays: 'flex gap-1',
-                                            weekday: 'flex-1 rounded-md text-[0.75rem] font-semibold text-[#8A85A0] select-none',
-                                            day: 'group/day relative aspect-square h-full w-full p-0 text-center select-none flex-1',
-                                        }}
-                                        modifiers={{
-                                            range_start: (date) => !!dateRange?.from && isSameDay(date, dateRange.from),
-                                            range_end: (date) => !!dateRange?.to && isSameDay(date, dateRange.to),
-                                            range_middle: (date) =>
-                                                !!dateRange?.from && !!dateRange?.to &&
-                                                date > dateRange.from && date < dateRange.to,
-                                        }}
-                                    />
+                            {/* Two-month calendar, or a message when the length has no windows */}
+                            <RentalCalendar
+                                month={calendarMonth}
+                                onMonthChange={setCalendarMonth}
+                                getDayState={getDayState}
+                                onDayClick={handleDayClick}
+                                canGoEarlier={calendarMonth > firstCalendarMonth}
+                                canGoLater={calendarMonth < lastCalendarMonth}
+                                emptyMessage={
+                                    !loadingAvailability && windowStarts.length === 0
+                                        ? `No ${windowLength}-day rental windows available in the next ${ROLL_MONTHS} months. Try a shorter duration.`
+                                        : undefined
+                                }
+                            />
+
+                            {/* Earlier / Later: step through the rental windows */}
+                            <div className="flex justify-between items-center gap-2.5 mt-3.5 bg-[#FCF2F8] border border-[#ecdde8] rounded-xl py-2 px-2.5">
+                                {selectedWindowIndex < 0 || !startDate || !endDate ? (
+                                    <div className="flex-1 text-center text-[13.5px] font-bold">No dates selected</div>
                                 ) : (
-                                    <Calendar
-                                        mode="range"
-                                        selected={dateRange}
-                                        onSelect={(range) => {
-                                            setDateError(null);
-
-                                            if (range?.from && range?.to && !isRangeFullyAvailable(range.from, range.to)) {
-                                                setDateError('That range includes dates that are already booked. Try different dates.');
-                                                setDateRange({ from: range.from, to: undefined });
-                                                return;
-                                            }
-
-                                            setDateRange(range);
-                                        }}
-                                        disabled={isDateDisabled}
-                                        numberOfMonths={1}
-                                        className="p-5 w-full"
-                                        classNames={{
-                                            month: 'flex w-full flex-col gap-4',
-                                            table: 'w-full border-collapse',
-                                            week: 'mt-2 flex w-full gap-1',
-                                            weekdays: 'flex gap-1',
-                                            weekday: 'flex-1 rounded-md text-[0.75rem] font-semibold text-[#8A85A0] select-none',
-                                            day: 'group/day relative aspect-square h-full w-full p-0 text-center select-none flex-1',
-                                        }}
-                                        modifiers={{
-                                            range_end_disabled: (date) => {
-                                                if (!dateRange?.from || dateRange?.to) return false;
-                                                const min = new Date(dateRange.from);
-                                                min.setDate(min.getDate() + 3);
-                                                return date > dateRange.from && date < min;
-                                            },
-                                        }}
-                                        modifiersClassNames={{
-                                            range_end_disabled: 'opacity-40 cursor-not-allowed',
-                                        }}
-                                    />
+                                    <>
+                                        <button
+                                            type="button"
+                                            disabled={selectedWindowIndex <= 0}
+                                            onClick={() => selectWindow(selectedWindowIndex - 1)}
+                                            className="bg-white border border-[#ecdde8] rounded-[9px] py-[7px] px-3 text-[13px] font-bold text-[#662762] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:text-[#9a8b98]"
+                                        >
+                                            ‹ Earlier
+                                        </button>
+                                        <div className="flex-1 text-center text-[13.5px] font-bold">
+                                            {format(startDate, 'MMM d')} – {format(endDate, 'MMM d')}
+                                            <small className="block font-normal text-[11px] text-[#9a8b98]">
+                                                {windowLength}-day rental
+                                                {selectedWindowIndex >= windowStarts.length - 1 ? ' · last window' : ''}
+                                            </small>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            disabled={selectedWindowIndex >= windowStarts.length - 1}
+                                            onClick={() => selectWindow(selectedWindowIndex + 1)}
+                                            className="bg-white border border-[#ecdde8] rounded-[9px] py-[7px] px-3 text-[13px] font-bold text-[#662762] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:text-[#9a8b98]"
+                                        >
+                                            Later ›
+                                        </button>
+                                    </>
                                 )}
                             </div>
 
-                            {/* Rental summary — only shown when dates are selected */}
-                            {startDate && endDate ? (
-                                <div className="flex-1 bg-[#8C2D8B]/10 border border-[#8c2d8b] rounded-lg p-4">
-                                    <p className="text-sm font-semibold text-[#8C2D8B] mb-3">Rental Summary</p>
-                                    <div className="flex justify-between items-center mb-2 text-sm">
-                                        <span className="text-gray-600">Start</span>
-                                        <span className="font-medium">{format(startDate, 'MMM d, yyyy')}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center mb-2 text-sm">
-                                        <span className="text-gray-600">End</span>
-                                        <span className="font-medium">{format(endDate, 'MMM d, yyyy')}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center mb-2 text-sm">
-                                        <span className="text-gray-600">Duration</span>
-                                        <span className="font-medium">{rentalDays} {rentalDays === 1 ? 'day' : 'days'}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center mb-4 text-sm">
-                                        <span className="text-gray-600">Daily rate</span>
-                                        <span className="font-medium">CAD$ {product.price.toFixed(2)}</span>
-                                    </div>
-                                    <div className="border-t border-[#8c2d8b] pt-3">
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-semibold text-gray-900">Total</span>
-                                            <span className="text-xl font-bold text-[#8C2D8B]">CAD$ {totalPrice.toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => { setDateRange(undefined); setDateError(null); }}
-                                        className="mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                                    >
-                                        Clear dates
-                                    </button>
+                            {/* Upcoming windows: every available window for the chosen length */}
+                            <p className="text-[11px] tracking-[0.14em] uppercase font-bold text-[#662762] mt-[18px] mb-2">
+                                Upcoming windows
+                            </p>
+                            {loadingAvailability ? (
+                                <p className="text-[12.5px] text-[#9a8b98]">Loading availability…</p>
+                            ) : windowStarts.length === 0 ? (
+                                <div className="text-[13.5px] text-[#5c4f5c] bg-[#FCF2F8] border border-[#ecdde8] rounded-xl p-4 text-center">
+                                    No {windowLength}-day windows available. Try another duration.
                                 </div>
                             ) : (
-                                <div className="flex-1 flex items-center justify-center text-sm text-gray-400 text-center py-8">
-                                    Select your start and end dates to see the rental total
+                                <div className="max-h-[186px] overflow-auto flex flex-col gap-1.5 pr-0.5">
+                                    {windowStarts.slice(0, 40).map((iso, index) => {
+                                        const start = parseISODateLocal(iso);
+                                        const isSelected = index === selectedWindowIndex;
+                                        return (
+                                            <button
+                                                key={iso}
+                                                type="button"
+                                                onClick={() => selectWindow(index)}
+                                                className={`flex justify-between items-center shrink-0 py-[9px] px-3 border rounded-[10px] text-[13px] cursor-pointer transition-colors ${
+                                                    isSelected
+                                                        ? 'border-[#C7D45E] bg-[#EAEFC5]'
+                                                        : 'border-[#ecdde8] hover:border-[#C7D45E] hover:bg-[#FCF2F8]'
+                                                }`}
+                                            >
+                                                <span className="font-bold">{windowLength}-Day Rental</span>
+                                                <span className="text-[#5c4f5c]">
+                                                    {format(start, 'MMM d')} – {format(addDays(start, windowLength - 1), 'MMM d')}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             )}
+
+                            {/* Charges breakdown, same rows as the rental site (Standard fulfilment for now) */}
+                            <RentalEstimate
+                                rrp={product.price}
+                                days={windowLength}
+                                hasSelection={selectedWindowIndex >= 0}
+                            />
                         </div>
 
                         {/* Inline date error */}
